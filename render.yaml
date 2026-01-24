@@ -9,7 +9,8 @@ services:
     region: oregon
 
     # No rootDir: use repo root. Build and start use full paths.
-    buildCommand: pnpm install && pnpm --filter @qr-menu/server run build
+    # corepack enable: use pnpm from packageManager; prisma generate required before build.
+    buildCommand: corepack enable && pnpm install && pnpm --filter @qr-menu/server exec prisma generate && pnpm --filter @qr-menu/server run build
     startCommand: node apps/server/dist/index.js
 
     envVars:

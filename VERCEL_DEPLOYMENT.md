@@ -26,11 +26,20 @@ The frontends will call this API and Socket URL. Deploy the server **before** co
 
 ### Option A: Railway
 
+**Using `railway.toml` (recommended, repo root):**
+
 1. Create a [Railway](https://railway.app) project and connect your repo.
-2. Add a **service** from the `apps/server` directory (set **Root Directory** to `apps/server`).
-3. Set **Build Command**: `pnpm install && pnpm exec prisma generate && pnpm run build`
-4. Set **Start Command**: `pnpm run start` (or `node dist/index.js`)
-5. Add **environment variables** (in Railway dashboard):
+2. Add a **service**; keep **Root Directory** as `/` (repo root). The repo includes `railway.toml` with build/start commands.
+3. Railway will use `railway.toml`: build runs `corepack enable && pnpm install && prisma generate && build`; start runs `node apps/server/dist/index.js`.
+4. Add **environment variables** (in Railway dashboard):
+
+**Or, using Root Directory `apps/server`:**
+
+1. Set **Root Directory** to `apps/server`.
+2. Set **Build Command**: `pnpm install && pnpm exec prisma generate && pnpm run build`
+3. Set **Start Command**: `pnpm run start` (or `node dist/index.js`)
+
+**For both options**, add **environment variables** (in Railway dashboard):
 
    ```env
    PORT=3000
@@ -54,13 +63,20 @@ The frontends will call this API and Socket URL. Deploy the server **before** co
 
 ### Option B: Render
 
+**Using `render.yaml` (recommended, repo root):**
+
 1. Create a **Web Service** on [Render](https://render.com), connect the repo.
-2. **Root Directory:** `apps/server`
-3. **Build:** `pnpm install && pnpm exec prisma generate && pnpm run build`
-4. **Start:** `pnpm run start`
-5. Add the same env vars as above (`PORT`, `DATABASE_URL`, `JWT_SECRET`, `CUSTOMER_APP_URL`, `ADMIN_APP_URL`, etc.).
-6. Use Render Postgres or an external DB; run `prisma migrate deploy`.
-7. Use the Render service URL as your API and Socket base.
+2. Use the **Blueprint** from `render.yaml` (or create a service and match its settings): **Root Directory** = `/` (repo root), **Build** = `corepack enable && pnpm install && pnpm --filter @qr-menu/server exec prisma generate && pnpm --filter @qr-menu/server run build`, **Start** = `node apps/server/dist/index.js`.
+3. Add env vars in the Dashboard: `PORT`, `DATABASE_URL`, `JWT_SECRET`, `CUSTOMER_APP_URL`, `ADMIN_APP_URL`, etc.
+4. Use Render Postgres or an external DB; run `prisma migrate deploy`.
+5. Use the Render service URL as your API and Socket base.
+
+**Or, using Root Directory `apps/server`:**
+
+1. **Root Directory:** `apps/server`
+2. **Build:** `pnpm install && pnpm exec prisma generate && pnpm run build`
+3. **Start:** `pnpm run start`
+4. Add the same env vars; run migrations; use the service URL as API/Socket base.
 
 ---
 
