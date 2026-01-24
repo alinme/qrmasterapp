@@ -24,13 +24,15 @@ So you’ll have **two Vercel projects** (admin + customer) and **one backend** 
 
 The frontends will call this API and Socket URL. Deploy the server **before** configuring Vercel.
 
+**Prisma:** For production deploys on Render/Railway, `@prisma/client` and `prisma` must be in **dependencies** (not devDependencies) in `apps/server/package.json`. The start command includes `prisma generate &&` before `node apps/server/dist/index.js` so the client is generated in the runtime environment.
+
 ### Option A: Railway
 
 **Using `railway.toml` (recommended, repo root):**
 
 1. Create a [Railway](https://railway.app) project and connect your repo.
 2. Add a **service**; keep **Root Directory** as `/` (repo root). The repo includes `railway.toml` with build/start commands.
-3. Railway will use `railway.toml`: build runs `corepack enable && pnpm install && prisma generate && build`; start runs `node apps/server/dist/index.js`.
+3. Railway will use `railway.toml`: build runs `corepack enable && pnpm install && prisma generate && build`; start runs `pnpm --filter @qr-menu/server exec prisma generate && node apps/server/dist/index.js` (Prisma generate runs in the runtime environment before start).
 4. Add **environment variables** (in Railway dashboard):
 
 **Or, using Root Directory `apps/server`:**
@@ -66,7 +68,7 @@ The frontends will call this API and Socket URL. Deploy the server **before** co
 **Using `render.yaml` (recommended, repo root):**
 
 1. Create a **Web Service** on [Render](https://render.com), connect the repo.
-2. Use the **Blueprint** from `render.yaml` (or create a service and match its settings): **Root Directory** = `/` (repo root), **Build** = `corepack enable && pnpm install && pnpm --filter @qr-menu/server exec prisma generate && pnpm --filter @qr-menu/server run build`, **Start** = `node apps/server/dist/index.js`.
+2. Use the **Blueprint** from `render.yaml` (or create a service and match its settings): **Root Directory** = `/` (repo root), **Build** = `corepack enable && pnpm install && pnpm --filter @qr-menu/server exec prisma generate && pnpm --filter @qr-menu/server run build`, **Start** = `pnpm --filter @qr-menu/server exec prisma generate && node apps/server/dist/index.js` (Prisma generate runs in the runtime environment before start).
 3. Add env vars in the Dashboard: `PORT`, `DATABASE_URL`, `JWT_SECRET`, `CUSTOMER_APP_URL`, `ADMIN_APP_URL`, etc.
 4. Use Render Postgres or an external DB; run `prisma migrate deploy`.
 5. Use the Render service URL as your API and Socket base.

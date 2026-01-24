@@ -11,9 +11,10 @@ services:
     # No rootDir: use repo root. Build and start use full paths.
     # corepack enable: use pnpm from packageManager; prisma generate required before build.
     buildCommand: corepack enable && pnpm install && pnpm --filter @qr-menu/server exec prisma generate && pnpm --filter @qr-menu/server run build
-    startCommand: node apps/server/dist/index.js
+    startCommand: pnpm --filter @qr-menu/server exec prisma generate && node apps/server/dist/index.js
 
     envVars:
       - key: NODE_VERSION
         value: "20"
+      
     # Add in Dashboard: DATABASE_URL, JWT_SECRET, CUSTOMER_APP_URL, ADMIN_APP_URL

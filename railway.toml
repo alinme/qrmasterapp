@@ -1,6 +1,7 @@
 # Railway config: QR Menu API (Express + Socket.IO)
 # Deploy from repo root. Use this file for the server service.
 # Ensure Root Directory is / (repo root) in Railway dashboard.
+# OLD: startCommand = "node apps/server/dist/index.js"
 
 [build]
 builder = "RAILPACK"
@@ -8,4 +9,4 @@ buildCommand = "corepack enable && pnpm install && pnpm --filter @qr-menu/server
 watchPatterns = ["apps/server/**", "packages/**", "pnpm-workspace.yaml", "pnpm-lock.yaml"]
 
 [deploy]
-startCommand = "node apps/server/dist/index.js"
+startCommand = "pnpm --filter @qr-menu/server exec prisma generate && node apps/server/dist/index.js"

@@ -6,6 +6,7 @@
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsc prisma/seed.ts --outDir prisma --module commonjs --esModuleInterop --skipLibCheck && node prisma/seed.js && del prisma\\seed.js",
@@ -24,10 +25,11 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "qrcode": "^1.5.4",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0"
   },
   "devDependencies": {
-    "@prisma/client": "^5.22.0",
     "@types/cors": "^2.8.17",
     "@types/express": "4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
@@ -35,7 +37,6 @@
     "@types/node": "^22.10.2",
     "@types/qrcode": "^1.5.6",
     "nodemon": "^3.1.9",
-    "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   }
