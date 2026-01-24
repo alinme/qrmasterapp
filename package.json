@@ -1,0 +1,28 @@
+{
+  "name": "QRMenu",
+  "version": "1.0.0",
+  "description": "Multi-tenant SaaS QR Menu + Live Table Ordering System",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon apps/server/src/index.ts",
+    "dev:server": "pnpm --filter @qr-menu/server dev",
+    "dev:customer": "pnpm --filter customer dev",
+    "dev:admin": "pnpm --filter admin dev",
+    "build": "pnpm --filter '@qr-menu/server' --filter 'customer' --filter 'admin' build",
+    "build:server": "pnpm --filter @qr-menu/server build",
+    "build:customer": "pnpm --filter customer build",
+    "build:admin": "pnpm --filter admin build",
+    "db:migrate": "pnpm --filter @qr-menu/server exec prisma migrate dev",
+    "db:generate": "pnpm --filter @qr-menu/server exec prisma generate",
+    "db:seed": "pnpm --filter @qr-menu/server exec prisma db seed",
+    "db:studio": "pnpm --filter @qr-menu/server exec prisma studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.1",
+  "dependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

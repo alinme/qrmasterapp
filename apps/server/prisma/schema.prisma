@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Tenant
+model Restaurant {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  address   String?
+  logoUrl   String? // Restaurant logo/image URL
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  categories Category[]
+  products   Product[]
+  tables     Table[]
+  orders     Order[]
+  allergens  Allergen[]
+  tableBills TableBill[]
+}
+
+// Auth
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         String     @default("RESTAURANT_ADMIN") // SUPER_ADMIN, RESTAURANT_ADMIN, STAFF, KITCHEN, SERVER
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  serverTables Table[]    @relation("ServerTables")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+// Menu
+model Allergen {
+  id           String     @id @default(uuid())
+  name         String
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([name, restaurantId])
+  @@index([restaurantId])
+}
+
+model Category {
+  id           String     @id @default(uuid())
+  name         String
+  sortOrder    Int        @default(0)
+  imageUrl     String? // Single image URL for category
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  products     Product[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Product {
+  id                String            @id @default(uuid())
+  name              String
+  description       String?
+  price             Float
+  weight            String? // Weight/volume (e.g., "500g", "250ml", "1kg")
+  ingredients       String? // Optional ingredients list (e.g., "Beef, Potatoes, Vegetables")
+  nutritionalValues String? // JSON: { calories, protein, carbs, fat, fiber, sugar, sodium }
+  isAvailable       Boolean           @default(true)
+  isFeatured        Boolean           @default(false) // If true, this product appears in featured section
+  allergens         String? // JSON array of allergen strings
+  modifiers         String? // JSON: { sizes: [{name, price}], extras: [{name, price}] }
+  isCombo           Boolean           @default(false) // If true, this is a combo base product
+  restaurantId      String
+  restaurant        Restaurant        @relation(fields: [restaurantId], references: [id])
+  categoryId        String
+  category          Category          @relation(fields: [categoryId], references: [id])
+  images            ProductImage[]
+  orderItems        OrderItem[]
+  baseRelations     ProductRelation[] @relation("BaseProduct")
+  relatedRelations  ProductRelation[] @relation("RelatedProduct")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  url       String
+  type      String   @default("image") // "image" or "video"
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// Product Relations/Combo Meals
+model ProductRelation {
+  id               String   @id @default(uuid())
+  baseProductId    String // The main product (e.g., Steak)
+  relatedProductId String // The related product (e.g., Mash Potatoes)
+  product          Product  @relation("BaseProduct", fields: [baseProductId], references: [id], onDelete: Cascade)
+  relatedProduct   Product  @relation("RelatedProduct", fields: [relatedProductId], references: [id], onDelete: Cascade)
+  isRequired       Boolean  @default(false) // If true, must select one from this group
+  groupName        String? // Group name (e.g., "Sides", "Drinks") - products in same group are alternatives
+  priceModifier    Float    @default(0) // Additional price for this option (can be negative for discounts)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  @@unique([baseProductId, relatedProductId])
+  @@index([baseProductId])
+}
+
+// Tables & Sessions
+model Table {
+  id           String         @id @default(uuid())
+  name         String
+  chairs       Int?           @default(4) // Number of chairs/seats
+  form         String?        // Table form: "square", "round", "oval", "rectangular"
+  status       String         @default("AVAILABLE") // AVAILABLE, BUSY, BILL_REQUESTED, READY
+  qrTokenSeed  String? // Secret to sign tokens with (or just valid token)
+  lastResetAt  DateTime?      // Timestamp when table was last reset - orders before this are hidden
+  serverId     String?        // User ID of the server assigned to this table (null = free table)
+  server       User?          @relation("ServerTables", fields: [serverId], references: [id])
+  restaurantId String
+  restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
+  sessions     TableSession[]
+  orders       Order[]
+  tableBills   TableBill[]
+  billRequests BillRequest[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model TableSession {
+  id        String    @id @default(uuid())
+  tableId   String
+  table     Table     @relation(fields: [tableId], references: [id])
+  token     String    @unique
+  expiresAt DateTime?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+}
+
+// Orders
+model Order {
+  id            String      @id @default(uuid())
+  restaurantId  String
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
+  tableId       String
+  table         Table       @relation(fields: [tableId], references: [id])
+  status        String      @default("RECEIVED") // RECEIVED, SERVER_REVIEW, PREPARING, READY, SERVED, CANCELLED
+  serverNotes   String?     // Notes added by server during review
+  total         Float
+  notes         String?
+  deviceId      String? // Unique identifier for the device/customer that placed this order
+  customerName  String?     // Customer name for this order
+  customerGender String?    // Customer gender: "male" or "female"
+  customerAvatar String?    // Customer avatar URL or placeholder
+  paymentStatus String      @default("UNPAID") // UNPAID, PARTIALLY_PAID, PAID
+  items         OrderItem[]
+  payments      Payment[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([tableId])
+  @@index([deviceId])
+  @@index([paymentStatus])
+}
+
+model OrderItem {
+  id            String  @id @default(uuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id])
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  quantity      Int
+  priceSnapshot Float
+  notes         String?
+}
+
+// Payments & Bills
+model Payment {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id])
+  amount      Float // Amount paid (subtotal for selected orders)
+  tipAmount   Float    @default(0) // Tip amount
+  tipType     String? // "PERCENTAGE" or "AMOUNT"
+  tipValue    Float? // Percentage (0-100) or fixed amount
+  paymentType String? // "CASH" or "POS" - how the customer requested to pay
+  total       Float // amount + tipAmount
+  deviceId    String? // Device/customer that made this payment
+  processedBy String? // User ID of staff who processed payment (if paid at server)
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([deviceId])
+}
+
+// Bill grouping - tracks which orders are part of a table's bill
+model TableBill {
+  id           String     @id @default(uuid())
+  tableId      String
+  table        Table      @relation(fields: [tableId], references: [id])
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  totalAmount  Float // Total of all unpaid orders
+  paidAmount   Float      @default(0) // Total paid so far
+  status       String     @default("OPEN") // OPEN, PARTIALLY_PAID, CLOSED
+  closedAt     DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([tableId])
+  @@index([status])
+}
+
+// Bill requests - stores customer payment requests
+model BillRequest {
+  id          String   @id @default(uuid())
+  tableId     String
+  table       Table    @relation(fields: [tableId], references: [id])
+  orderIds    String   // JSON array of order IDs
+  amount      Float
+  tipAmount   Float    @default(0)
+  tipType     String?  // "PERCENTAGE" or "AMOUNT"
+  tipValue    Float?
+  paymentType String   // "CASH" or "POS"
+  totalWithTip Float
+  deviceId    String?
+  processed   Boolean  @default(false) // Whether server has processed this request
+  createdAt   DateTime @default(now())
+
+  @@index([tableId])
+  @@index([processed])
+}

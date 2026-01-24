@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Table" ADD COLUMN "chairs" INTEGER DEFAULT 4;
+ALTER TABLE "Table" ADD COLUMN "form" TEXT;
