@@ -3,5 +3,8 @@
   "framework": "vite",
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "env": {
+    "PRISMA_SKIP_POSTINSTALL_GENERATE": "1"
+  }
 }

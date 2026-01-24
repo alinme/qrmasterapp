@@ -111,7 +111,7 @@ You’ll create **two Vercel projects**, both from the same repo, each with a di
 
 Replace `YOUR_SERVER_URL` with your Railway/Render URL (no trailing slash).
 
-**Optional:** If you use `vercel.json` in `apps/admin`, it can set `buildCommand`, `outputDirectory`, and SPA rewrites. The table above matches that.
+**Optional:** `vercel.json` in `apps/admin` sets `buildCommand`, `outputDirectory`, SPA rewrites, and `PRISMA_SKIP_POSTINSTALL_GENERATE=1` (skips Prisma’s postinstall during install; admin has no schema). The table above matches that.
 
 Click **Deploy**. Note the admin URL (e.g. `https://qr-menu-admin-xxx.vercel.app`).
 
@@ -133,6 +133,8 @@ Click **Deploy**. Note the admin URL (e.g. `https://qr-menu-admin-xxx.vercel.app
 |-------------------|--------------------------------------------|
 | `VITE_API_URL`    | `https://YOUR_SERVER_URL/api`              |
 | `VITE_SOCKET_URL` | `https://YOUR_SERVER_URL`                  |
+
+Customer’s `vercel.json` also sets `PRISMA_SKIP_POSTINSTALL_GENERATE=1` for the same reason.
 
 Deploy and note the customer URL (e.g. `https://qr-menu-customer-xxx.vercel.app`).
 
