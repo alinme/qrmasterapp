@@ -4,6 +4,8 @@ import { authenticateToken, AuthRequest } from './middleware/auth';
 import { requireStaffOrAbove } from './middleware/rbac';
 import { getSocket } from './socket';
 
+type PaymentLike = { amount?: number; tipAmount?: number };
+
 const router = Router();
 
 // Get all unprocessed bill requests for restaurant
@@ -81,23 +83,24 @@ router.get('/tables', authenticateToken, requireStaffOrAbove, async (req: AuthRe
     });
 
     // Calculate totals for each table
-    const tablesWithBills = tables.map(table => {
+    type TableRow = (typeof tables)[number];
+    const tablesWithBills = tables.map((table: TableRow) => {
       // Filter orders to only include those created after last reset
       let allOrders = table.orders || [];
       if (table.lastResetAt) {
-        allOrders = allOrders.filter((order: any) => 
+        allOrders = allOrders.filter((order: { createdAt: Date }) =>
           new Date(order.createdAt) >= new Date(table.lastResetAt!)
         );
       }
-      
-      const totalBill = allOrders.reduce((sum, order) => sum + order.total, 0);
-      
+
+      const totalBill = allOrders.reduce((sum: number, order: { total: number }) => sum + order.total, 0);
+
       // Calculate paid amount (excluding tips) and total tips separately
       let paidAmount = 0;
       let totalTips = 0;
-      
-      allOrders.forEach(order => {
-        (order.payments || []).forEach((payment: any) => {
+
+      allOrders.forEach((order: { payments?: PaymentLike[] }) => {
+        (order.payments || []).forEach((payment: PaymentLike) => {
           // payment.total includes tip, payment.amount is the base amount
           paidAmount += payment.amount || 0;
           totalTips += payment.tipAmount || 0;
@@ -178,25 +181,26 @@ router.get('/tables/:tableId/bill', authenticateToken, requireStaffOrAbove, asyn
       orderBy: { createdAt: 'desc' }
     });
 
+    type OrderRow = (typeof orders)[number];
     // Group orders by deviceId
-    const ordersByDevice = orders.reduce((acc, order) => {
+    const ordersByDevice = orders.reduce((acc: Record<string, OrderRow[]>, order: OrderRow) => {
       const deviceId = order.deviceId || 'unknown';
       if (!acc[deviceId]) {
         acc[deviceId] = [];
       }
       acc[deviceId].push(order);
       return acc;
-    }, {} as Record<string, typeof orders>);
+    }, {} as Record<string, OrderRow[]>);
 
     // Calculate total bill (order totals)
-    const totalBill = orders.reduce((sum, order) => sum + order.total, 0);
-    
+    const totalBill = orders.reduce((sum: number, order: OrderRow) => sum + order.total, 0);
+
     // Calculate paid amount (base payments, excluding tips) and total tips
     let totalPaid = 0;
     let totalTips = 0;
-    
-    orders.forEach(order => {
-      (order.payments || []).forEach((payment: any) => {
+
+    orders.forEach((order: OrderRow) => {
+      (order.payments || []).forEach((payment: PaymentLike) => {
         totalPaid += payment.amount || 0;
         totalTips += payment.tipAmount || 0;
       });
@@ -261,15 +265,16 @@ router.post('/payments', authenticateToken, requireStaffOrAbove, async (req: Aut
       return res.status(400).json({ success: false, error: 'Some orders not found' });
     }
 
+    type OrderWithPmts = (typeof orders)[number];
     // Check if all orders are from same table
-    const tableIds = [...new Set(orders.map(o => o.tableId))];
+    const tableIds = [...new Set(orders.map((o: OrderWithPmts) => o.tableId))];
     if (tableIds.length > 1) {
       return res.status(400).json({ success: false, error: 'All orders must be from the same table' });
     }
 
     // Calculate remaining amount for selected orders (base amount only, excluding tips)
-    const remainingAmount = orders.reduce((sum, order) => {
-      const paid = order.payments.reduce((pSum, payment) => pSum + (payment.amount || 0), 0);
+    const remainingAmount = orders.reduce((sum: number, order: OrderWithPmts) => {
+      const paid = order.payments.reduce((pSum: number, payment: PaymentLike) => pSum + (payment.amount || 0), 0);
       return sum + (order.total - paid);
     }, 0);
 
@@ -282,9 +287,9 @@ router.post('/payments', authenticateToken, requireStaffOrAbove, async (req: Aut
     let remainingPayment = total;
 
     for (const order of orders) {
-      const orderPaid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const orderPaid = order.payments.reduce((sum: number, p: PaymentLike) => sum + (p.amount || 0), 0);
       const orderRemaining = order.total - orderPaid;
-      
+
       if (orderRemaining > 0 && remainingPayment > 0) {
         const paymentAmount = Math.min(orderRemaining, remainingPayment);
         const paymentTip = remainingPayment === total ? tipAmount : 0; // Only apply tip to last payment
@@ -308,7 +313,7 @@ router.post('/payments', authenticateToken, requireStaffOrAbove, async (req: Aut
         remainingPayment -= paymentAmount;
 
         // Update order payment status (base amount only, tips don't count toward order payment)
-        const newPaid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0) + paymentAmount;
+        const newPaid = order.payments.reduce((sum: number, p: PaymentLike) => sum + (p.amount || 0), 0) + paymentAmount;
         let paymentStatus = 'UNPAID';
         if (newPaid >= order.total) {
           paymentStatus = 'PAID';

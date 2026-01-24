@@ -2,6 +2,8 @@ import express, { Router, Request, Response } from 'express';
 import prisma from './prisma';
 import { getSocket } from './socket';
 
+type PaymentLike = { amount?: number; tipAmount?: number; total?: number };
+
 const router = Router();
 
 // Get restaurant by slug (Public)
@@ -380,25 +382,26 @@ router.get('/tables/:tableId/bill', async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
 
+    type OrderRow = (typeof orders)[number];
     // Group orders by deviceId
-    const ordersByDevice = orders.reduce((acc, order) => {
+    const ordersByDevice = orders.reduce((acc: Record<string, OrderRow[]>, order: OrderRow) => {
       const deviceId = order.deviceId || 'unknown';
       if (!acc[deviceId]) {
         acc[deviceId] = [];
       }
       acc[deviceId].push(order);
       return acc;
-    }, {} as Record<string, typeof orders>);
+    }, {} as Record<string, OrderRow[]>);
 
     // Calculate total bill (order totals)
-    const totalBill = orders.reduce((sum, order) => sum + order.total, 0);
-    
+    const totalBill = orders.reduce((sum: number, order: OrderRow) => sum + order.total, 0);
+
     // Calculate paid amount (base payments, excluding tips) and total tips
     let totalPaid = 0;
     let totalTips = 0;
-    
-    orders.forEach(order => {
-      order.payments.forEach((payment: any) => {
+
+    orders.forEach((order: OrderRow) => {
+      order.payments.forEach((payment: PaymentLike) => {
         totalPaid += payment.amount || 0;
         totalTips += payment.tipAmount || 0;
       });
@@ -479,9 +482,10 @@ router.post('/payments', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Some orders not found or do not belong to this table' });
     }
 
+    type OrderWithPmts = (typeof orders)[number];
     // Calculate remaining amount for selected orders
-    const remainingAmount = orders.reduce((sum, order) => {
-      const paid = order.payments.reduce((pSum, payment) => pSum + payment.total, 0);
+    const remainingAmount = orders.reduce((sum: number, order: OrderWithPmts) => {
+      const paid = order.payments.reduce((pSum: number, payment: PaymentLike) => pSum + (payment.total ?? 0), 0);
       return sum + (order.total - paid);
     }, 0);
 
@@ -494,9 +498,9 @@ router.post('/payments', async (req: Request, res: Response) => {
     let remainingPayment = total;
 
     for (const order of orders) {
-      const orderPaid = order.payments.reduce((sum, p) => sum + p.total, 0);
+      const orderPaid = order.payments.reduce((sum: number, p: PaymentLike) => sum + (p.total ?? 0), 0);
       const orderRemaining = order.total - orderPaid;
-      
+
       if (orderRemaining > 0 && remainingPayment > 0) {
         const paymentAmount = Math.min(orderRemaining, remainingPayment);
         const paymentTip = remainingPayment === total ? tipAmount : 0; // Only apply tip to last payment
@@ -519,7 +523,7 @@ router.post('/payments', async (req: Request, res: Response) => {
         remainingPayment -= paymentAmount;
 
         // Update order payment status
-        const newPaid = order.payments.reduce((sum, p) => sum + p.total, 0) + paymentTotal;
+        const newPaid = order.payments.reduce((sum: number, p: PaymentLike) => sum + (p.total ?? 0), 0) + paymentTotal;
         let paymentStatus = 'UNPAID';
         if (newPaid >= order.total) {
           paymentStatus = 'PAID';

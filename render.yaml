@@ -1,0 +1,18 @@
+# Render Blueprint: QR Menu API (Express + Socket.IO)
+# Deploy from repo root so pnpm workspace + lockfile are available.
+# Dashboard: create Web Service → connect repo → Render will use this, or set manually.
+
+services:
+  - type: web
+    name: qrmenu-server
+    runtime: node
+    region: oregon
+
+    # No rootDir: use repo root. Build and start use full paths.
+    buildCommand: pnpm install && pnpm --filter @qr-menu/server run build
+    startCommand: node apps/server/dist/index.js
+
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+    # Add in Dashboard: DATABASE_URL, JWT_SECRET, CUSTOMER_APP_URL, ADMIN_APP_URL

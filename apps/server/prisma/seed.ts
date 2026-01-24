@@ -193,7 +193,7 @@ async function main() {
     await prisma.order.deleteMany({ where: { restaurantId: existing.id } })
     // Get all products first
     const products = await prisma.product.findMany({ where: { restaurantId: existing.id } })
-    const productIds = products.map(p => p.id)
+    const productIds = products.map((p: { id: string }) => p.id)
     // Delete product relations (they reference products)
     if (productIds.length > 0) {
       await prisma.productRelation.deleteMany({ 
