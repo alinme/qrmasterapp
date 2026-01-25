@@ -1,7 +1,5 @@
 # Railway config: QR Menu API (Express + Socket.IO)
-# Deploy from repo root. Use this file for the server service.
-# Ensure Root Directory is / (repo root) in Railway dashboard.
-# OLD: startCommand = "node apps/server/dist/index.js"
+# Server service only. Root Directory = / (repo root). Config path = /apps/server/railway.toml.
 
 [build]
 builder = "RAILPACK"

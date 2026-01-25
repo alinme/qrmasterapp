@@ -28,20 +28,38 @@ The frontends will call this API and Socket URL. Deploy the server **before** co
 
 ### Option A: Railway
 
-**Using `railway.toml` (recommended, repo root):**
+**Per-service config (separate admin, customer, server):**
+
+Each app has its own `railway.toml`: `apps/server/railway.toml`, `apps/admin/railway.toml`, `apps/customer/railway.toml`. When Railway auto-imports the monorepo, it creates a service per package. **Assign each service its Config file path** so they no longer all run the server:
+
+| Service   | Root Directory | Config file                | What it runs                    |
+|-----------|----------------|----------------------------|---------------------------------|
+| **server**  | `/`            | `/apps/server/railway.toml`  | Express + Socket.IO API         |
+| **admin**   | `/`            | `/apps/admin/railway.toml`   | Vue admin SPA (build + serve)   |
+| **customer**| `/`            | `/apps/customer/railway.toml`| Vue customer SPA (build + serve)|
 
 1. Create a [Railway](https://railway.app) project and connect your repo.
-2. Add a **service**; keep **Root Directory** as `/` (repo root). The repo includes `railway.toml` with build/start commands.
-3. Railway will use `railway.toml`: build runs `corepack enable && pnpm install && prisma generate && build`; start runs `pnpm --filter @qr-menu/server exec prisma generate && node apps/server/dist/index.js` (Prisma generate runs in the runtime environment before start).
-4. Add **environment variables** (in Railway dashboard):
+2. For each service (server, admin, customer): set **Root Directory** = `/`, and **Config file** = the path above. Railway uses that config for build/start, so server runs the API, admin/customer run their Vue apps.
+3. Add **environment variables** for the **server** service (see below). Admin/customer only need `VITE_API_URL` and `VITE_SOCKET_URL` if you use them on Railway; typically you deploy those on Vercel.
 
-**Or, using Root Directory `apps/server`:**
+**To ignore admin and customer on Railway:**
 
-1. Set **Root Directory** to `apps/server`.
-2. Set **Build Command**: `pnpm install && pnpm exec prisma generate && pnpm run build`
-3. Set **Start Command**: `pnpm run start` (or `node dist/index.js`)
+If you deploy admin and customer on **Vercel** (recommended), use **only the server** on Railway:
 
-**For both options**, add **environment variables** (in Railway dashboard):
+1. Create a **single** Railway service for the server. Set **Root Directory** = `/`, **Config file** = `/apps/server/railway.toml`.
+2. **Remove** any auto-created admin and customer services (delete them in the Railway dashboard). Deploy admin and customer to Vercel instead.
+
+**Before you commit (Railway rebuilds on push):**
+
+1. **Configure Railway first:** The root `railway.toml` was removed. Each service uses a config under `apps/`. In the Railway dashboard, for every service you keep:
+   - Set **Root Directory** = `/`
+   - Set **Config file** = `/apps/server/railway.toml` (server) or `/apps/admin/railway.toml`, `/apps/customer/railway.toml` if you use those.
+2. If you **ignore** admin/customer: **delete** those services *before* you push, so only the server remains.
+3. Ensure **env vars** (e.g. `DATABASE_URL`, `JWT_SECRET`, …) are set for the server service.
+
+Then commit and push. Railway will rebuild using the per-app configs.
+
+**Environment variables** (for the **server** service only):
 
    ```env
    PORT=3000
@@ -53,13 +71,13 @@ The frontends will call this API and Socket URL. Deploy the server **before** co
 
    If you use S3 for uploads, add `AWS_*` (or your storage) vars too.
 
-6. Add **PostgreSQL** (Railway Postgres or external like Neon). Use that `DATABASE_URL`.  
+4. Add **PostgreSQL** (Railway Postgres or external like Neon). Use that `DATABASE_URL`.  
    **Note:** The app currently uses SQLite. For production you’ll need to switch Prisma to PostgreSQL and run migrations. Until then, you can keep SQLite only if your host supports a persistent volume (e.g. Render disk).
 
-7. Run migrations:  
+5. Run migrations:  
    `pnpm exec prisma migrate deploy` (from `apps/server`, or via Railway’s deploy command).
 
-8. Deploy and note the public URL, e.g. `https://your-server.up.railway.app`.  
+6. Deploy and note the public URL, e.g. `https://your-server.up.railway.app`.  
    **API base:** `https://your-server.up.railway.app/api`  
    **Socket base:** `https://your-server.up.railway.app`
 
