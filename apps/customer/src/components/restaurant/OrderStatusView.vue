@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useCartStore } from '@/stores/cart'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Clock, CheckCircle, ChefHat, UtensilsCrossed, ArrowLeft } from 'lucide-vue-next'
+import { CheckCircle, UtensilsCrossed } from 'lucide-vue-next'
 
 const router = useRouter()
-const route = useRoute()
 const orderStore = useOrderStore()
 const cart = useCartStore()
 const loading = ref(false)

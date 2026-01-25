@@ -477,21 +477,6 @@ function getTableStatusBorderColor(status: string) {
   }
 }
 
-function getTableDrawingBgColor(status: string) {
-  switch (status) {
-    case 'AVAILABLE':
-      return 'bg-gray-100 dark:bg-gray-800'
-    case 'BUSY':
-      return 'bg-yellow-100 dark:bg-yellow-900/30'
-    case 'BILL_REQUESTED':
-      return 'bg-orange-100 dark:bg-orange-900/30'
-    case 'READY':
-      return 'bg-green-100 dark:bg-green-900/30'
-    default:
-      return 'bg-gray-100 dark:bg-gray-800'
-  }
-}
-
 function getChairPosition(index: number, chairCount: number, tableForm: string | null) {
   const numChairs = Math.min(chairCount || 4, 12)
   const angle = (index * 2 * Math.PI) / numChairs

@@ -100,7 +100,7 @@ export const useOrderStore = defineStore('order', () => {
       window.location.href = '/thank-you'
     })
 
-    socket.value.on('payment_processed', (data: any) => {
+    socket.value.on('payment_processed', () => {
       // Refresh orders when payment is processed
       fetchOrders()
     })

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Receipt, DollarSign, ArrowLeft, CheckCircle2 } from 'lucide-vue-next'
+import { Receipt, DollarSign } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 
 const router = useRouter()
@@ -105,7 +105,8 @@ function selectAllOrders() {
     .map((o: any) => o.id)
 }
 
-function handleTipSelection(value: string | number) {
+function handleTipSelection(value: unknown) {
+  if (value == null) return
   if (value === 'custom_percent') {
     tipType.value = 'PERCENTAGE'
     tipValue.value = 0

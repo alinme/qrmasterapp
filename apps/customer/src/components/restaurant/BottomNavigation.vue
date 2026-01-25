@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, UtensilsCrossed, DollarSign, Star, Bell, Activity } from 'lucide-vue-next'
+import { BookOpen, UtensilsCrossed, Star, Bell, Activity } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'

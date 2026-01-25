@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { Card, CardContent } from '@/components/ui/card'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, Minus } from 'lucide-vue-next'
 import { useCartStore } from '@/stores/cart'

@@ -10,7 +10,6 @@ import {
   Table, 
   Menu as MenuIcon, 
   QrCode,
-  TrendingUp,
   Clock
 } from 'lucide-vue-next'
 

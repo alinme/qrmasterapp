@@ -5,7 +5,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerC
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Minus, Clock, CheckCircle, ChefHat, UtensilsCrossed, Receipt } from 'lucide-vue-next'
+import { Plus, Minus, Receipt } from 'lucide-vue-next'
 import { useOrderStore } from '@/stores/order'
 import CheckBillView from './CheckBillView.vue'
 

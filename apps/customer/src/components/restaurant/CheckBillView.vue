@@ -122,7 +122,7 @@ onMounted(async () => {
 })
 
 // Watch tipPercentage to prevent it from being reset after custom tip is applied
-watch(() => tipPercentage.value, (newValue, oldValue) => {
+watch(() => tipPercentage.value, (newValue) => {
   // If we just applied a custom tip and it's being reset to a preset value, restore it
   if (justAppliedCustomTip.value && lastCustomTipPercentage.value !== null) {
     if (newValue !== lastCustomTipPercentage.value && ['0', '10', '20', '30'].includes(String(newValue))) {

@@ -3,10 +3,8 @@ import { RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { LogOut, Shield } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
-const router = useRouter()
 
 function handleLogout() {
   auth.logout()

@@ -14,14 +14,6 @@ const loading = ref(true)
 const status = computed(() => orderStore.orderStatus)
 const order = computed(() => orderStore.currentOrder)
 
-const stepLabels: Record<string, string> = {
-  'RECEIVED': 'PRIMITĂ',
-  'SERVER_REVIEW': 'REVIZUIRE',
-  'PREPARING': 'SE PREGĂTEȘTE',
-  'READY': 'GATA',
-  'SERVED': 'SERVITĂ'
-}
-
 const stepOrder = ['RECEIVED', 'SERVER_REVIEW', 'PREPARING', 'READY', 'SERVED']
 const steps = ['PRIMITĂ', 'REVIZUIRE', 'SE PREGĂTEȘTE', 'GATA', 'SERVITĂ']
 

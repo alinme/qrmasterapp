@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import axios from 'axios'
 import { io, Socket } from 'socket.io-client'
 import { useAuthStore } from './auth'

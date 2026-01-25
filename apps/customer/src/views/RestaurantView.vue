@@ -44,9 +44,6 @@ const selectedModifiers = ref<Record<string, any>>({
 })
 const quantity = ref(1)
 const orderNote = ref('')
-const billMessage = ref('Vă rog să-mi aduceți nota de plată.')
-const callMessage = ref('Vă rog să veniți la masă.')
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 const BASE_URL = API_URL.replace('/api', '') // Remove /api to get base URL
 
@@ -383,7 +380,7 @@ async function handleOrderClick() {
   await orderStore.fetchOrders()
 }
 
-function handleRequestCheck(message: string) {
+function handleRequestCheck(_message: string) {
   // Navigate to split bill view
   router.push({ name: 'split-bill' })
 }
