@@ -92,100 +92,94 @@ async function loadBillRequests() {
 // Auto-refresh bill requests periodically
 let billRequestsInterval: any = null
 
-// Set up socket listeners after connection
-const setupSocketListeners = () => {
-    const socket = ordersStore.socket
-    if (socket?.connected) {
-      // Remove existing listeners to avoid duplicates
-      socket.off('bill_requested')
-      socket.off('table_status_changed')
-      
-      // Listen for new orders - this will be handled by ordersStore, but we add our own handler for notifications
-      socket.on('new_order', (order: any) => {
-        // Check if this order is for a table we own, or if it's a free table (tableServerId is null)
-        // Only show notification if:
-        // 1. It's a free table (tableServerId is null) - all servers see it
-        // 2. It's assigned to us (tableServerId === current user id)
-        const isMyTable = order.tableServerId === null || order.tableServerId === authStore.user?.id
-        
-        if (isMyTable && order.status === 'SERVER_REVIEW') {
-          toast.info('Comandă nouă de revizuit', {
-            description: `Masă: ${order.table?.name || 'N/A'}, Total: ${order.total.toFixed(2)} RON`,
-            duration: 5000
-          })
-          playNotificationSound()
-          
-          // Flash the table that has the new order
-          if (order.tableId) {
-            flashingReviewTableIds.value.add(order.tableId)
-            setTimeout(() => {
-              flashingReviewTableIds.value.delete(order.tableId)
-            }, 3000)
-          }
+// Named handlers so we can remove only ours on unmount (store keeps its own listeners)
+let handleNewOrder: ((order: any) => void) | null = null
+let handleOrderUpdated: (() => void) | null = null
+let handleBillRequested: ((data: any) => void) | null = null
+let handleTableStatusChanged: (() => void) | null = null
+let handleConnect: (() => void) | null = null
+let listenersSetup = false
+
+function teardownSocketListeners() {
+  const socket = ordersStore.socket
+  if (!socket) return
+  if (handleNewOrder) socket.off('new_order', handleNewOrder)
+  if (handleOrderUpdated) socket.off('order_updated', handleOrderUpdated)
+  if (handleBillRequested) socket.off('bill_requested', handleBillRequested)
+  if (handleTableStatusChanged) socket.off('table_status_changed', handleTableStatusChanged)
+  if (handleConnect) socket.off('connect', handleConnect)
+  handleNewOrder = null
+  handleOrderUpdated = null
+  handleBillRequested = null
+  handleTableStatusChanged = null
+  handleConnect = null
+  listenersSetup = false
+}
+
+function setupSocketListeners() {
+  const socket = ordersStore.socket
+  if (!socket?.connected || listenersSetup) return
+  listenersSetup = true
+
+  handleNewOrder = (order: any) => {
+    const isMyTable = order.tableServerId === null || order.tableServerId === authStore.user?.id
+    if (isMyTable && order.status === 'SERVER_REVIEW') {
+      toast.info('Comandă nouă de revizuit', {
+        description: `Masă: ${order.table?.name || 'N/A'}, Total: ${order.total.toFixed(2)} RON`,
+        duration: 5000
+      })
+      playNotificationSound()
+      if (order.tableId) {
+        flashingReviewTableIds.value.add(order.tableId)
+        setTimeout(() => flashingReviewTableIds.value.delete(order.tableId), 3000)
+      }
+    }
+    billsStore.fetchTables()
+  }
+  socket.on('new_order', handleNewOrder)
+
+  handleOrderUpdated = () => { billsStore.fetchTables() }
+  socket.on('order_updated', handleOrderUpdated)
+
+  handleBillRequested = async (data: any) => {
+    await loadBillRequests()
+    toast.info(data.message || 'Cerere de notă de plată', {
+      description: `Masă: ${data.tableName}, Total: ${data.totalWithTip?.toFixed(2)} RON, Tip: ${data.tipAmount?.toFixed(2) || 0} RON, Metodă: ${data.paymentType === 'CASH' ? 'Numerar' : 'POS'}`,
+      duration: Infinity,
+      action: {
+        label: 'Vezi',
+        onClick: () => {
+          const table = billsStore.tables.find((t: any) => t.id === data.tableId)
+          if (table) openBillDialog(table)
         }
-        
-        // Always refresh tables to get updated ownership info
-        billsStore.fetchTables()
-      })
-      
-      socket.on('order_updated', () => {
-        // Refresh if order status changed (don't call updatePendingReviews here - the watcher will handle it)
-        billsStore.fetchTables()
-      })
-      
-      socket.on('bill_requested', async (data: any) => {
-        // Reload bill requests to get the new one
-        await loadBillRequests()
-        
-        // Show persistent notification (don't auto-dismiss)
-        toast.info(data.message || 'Cerere de notă de plată', {
-          description: `Masă: ${data.tableName}, Total: ${data.totalWithTip?.toFixed(2)} RON, Tip: ${data.tipAmount?.toFixed(2) || 0} RON, Metodă: ${data.paymentType === 'CASH' ? 'Numerar' : 'POS'}`,
-          duration: Infinity, // Never auto-dismiss
-          action: {
-            label: 'Vezi',
-            onClick: () => {
-              // Find the table and open bill dialog
-              const table = billsStore.tables.find((t: any) => t.id === data.tableId)
-              if (table) {
-                openBillDialog(table)
-              }
-            }
-          }
-        })
-        playNotificationSound()
-        billsStore.fetchTables()
-        // If the bill dialog is open for this table, refresh it
-        if (selectedTable.value?.id === data.tableId) {
-          billsStore.fetchTableBill(data.tableId)
-        }
-      })
-      
-      socket.on('table_status_changed', () => {
-        billsStore.fetchTables()
-      })
+      }
+    })
+    playNotificationSound()
+    billsStore.fetchTables()
+    if (selectedTable.value?.id === data.tableId) {
+      billsStore.fetchTableBill(data.tableId)
     }
   }
+  socket.on('bill_requested', handleBillRequested)
 
-// Watch for socket connection changes
+  handleTableStatusChanged = () => { billsStore.fetchTables() }
+  socket.on('table_status_changed', handleTableStatusChanged)
+}
+
+// Watch socket reference only (no deep). Deep-watching caused infinite loop: setupSocketListeners
+// mutates socket (off/on), which retriggered the watch -> CPU spike, freeze.
 watch(() => ordersStore.socket, (newSocket) => {
-  if (newSocket) {
-    // Wait for socket to connect, then set up listeners
-    if (newSocket.connected) {
-      setupSocketListeners()
-    } else {
-      newSocket.on('connect', () => {
-        setupSocketListeners()
-      })
-    }
+  if (!newSocket) {
+    teardownSocketListeners()
+    return
   }
-}, { deep: true })
-
-// Also watch for socket connect event
-watch(() => ordersStore.socket?.connected, (connected) => {
-  if (connected) {
+  if (newSocket.connected) {
     setupSocketListeners()
+  } else {
+    handleConnect = () => setupSocketListeners()
+    newSocket.on('connect', handleConnect)
   }
-})
+}, { immediate: true })
 
 onMounted(async () => {
   await billsStore.fetchTables()
@@ -210,9 +204,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (billRequestsInterval) {
-    clearInterval(billRequestsInterval)
-  }
+  if (billRequestsInterval) clearInterval(billRequestsInterval)
+  teardownSocketListeners()
 })
 
 // Track previous signature to detect actual changes
