@@ -1,7 +1,7 @@
 # Railway config: Admin (Vue + Vite SPA)
 # Admin service only. Root Directory = /. Config path = /apps/admin/railway.toml.
 # To ignore: delete the admin service and deploy admin on Vercel instead.
-# Build outputs to dist/; start runs "vite preview" (serves dist, not dev).
+# Build outputs to dist/; start runs "serve -s dist" (static files only, no Vite server).
 
 [build]
 builder = "RAILPACK"
