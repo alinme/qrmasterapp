@@ -1,6 +1,7 @@
 # Railway config: Customer (Vue + Vite SPA)
 # Customer service only. Root Directory = /. Config path = /apps/customer/railway.toml.
 # To ignore: delete the customer service and deploy customer on Vercel instead.
+# Build outputs to dist/; start runs "vite preview" (serves dist, not dev).
 
 [build]
 builder = "RAILPACK"
@@ -8,4 +9,4 @@ buildCommand = "corepack enable && pnpm install --filter customer && pnpm --filt
 watchPatterns = ["apps/customer/**", "packages/**", "pnpm-workspace.yaml", "pnpm-lock.yaml"]
 
 [deploy]
-startCommand = "npx serve -s apps/customer/dist"
+startCommand = "pnpm --filter customer run start"

@@ -1,6 +1,7 @@
 # Railway config: Admin (Vue + Vite SPA)
 # Admin service only. Root Directory = /. Config path = /apps/admin/railway.toml.
 # To ignore: delete the admin service and deploy admin on Vercel instead.
+# Build outputs to dist/; start runs "vite preview" (serves dist, not dev).
 
 [build]
 builder = "RAILPACK"
@@ -8,4 +9,4 @@ buildCommand = "corepack enable && pnpm install --filter admin && pnpm --filter 
 watchPatterns = ["apps/admin/**", "packages/**", "pnpm-workspace.yaml", "pnpm-lock.yaml"]
 
 [deploy]
-startCommand = "npx serve -s apps/admin/dist"
+startCommand = "pnpm --filter admin run start"
