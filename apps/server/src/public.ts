@@ -278,7 +278,14 @@ router.get('/orders', async (req: Request, res: Response) => {
             product: true
           }
         },
-        table: true
+        table: true,
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
@@ -313,6 +320,13 @@ router.get('/orders/:orderId', async (req: Request, res: Response) => {
                 email: true
               }
             }
+          }
+        },
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
           }
         }
       }
