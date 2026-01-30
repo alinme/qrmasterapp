@@ -93,14 +93,24 @@ watch(() => orderStore.orders, async (newOrders, oldOrders) => {
 }, { deep: true })
 
 function orderMore() {
-  if (cart.restaurantSlug) {
-    router.push({ name: 'restaurant-menu', params: { slug: cart.restaurantSlug } })
+  // Try to get slug from multiple sources
+  let slug = cart.restaurantSlug
+  
+  // If no slug in cart, try to get from current order's restaurant
+  if (!slug && currentOrder.value?.restaurant?.slug) {
+    slug = currentOrder.value.restaurant.slug
+  }
+  
+  // If still no slug, try from route params
+  if (!slug) {
+    slug = route.params.slug as string
+  }
+  
+  if (slug) {
+    router.push({ name: 'restaurant-menu', params: { slug } })
   } else {
-    // Fallback - try to get slug from current route
-    const slug = route.params.slug
-    if (slug) {
-      router.push({ name: 'restaurant-menu', params: { slug } })
-    }
+    // Last resort - redirect to scan page
+    router.push({ name: 'scan' })
   }
 }
 </script>
