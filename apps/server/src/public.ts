@@ -125,7 +125,7 @@ router.post('/validate-token', async (req: Request, res: Response) => {
 
 // Create Order (Public - from customer)
 router.post('/orders', async (req: Request, res: Response) => {
-  const { tableToken, items, notes, deviceId, customerName, customerGender, customerAvatar } = req.body;
+  const { tableToken, items, notes, deviceId, customerName, customerAvatar } = req.body;
 
   if (!tableToken || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ success: false, error: 'Table token and items are required' });
@@ -164,7 +164,6 @@ router.post('/orders', async (req: Request, res: Response) => {
         notes: notes || null,
         deviceId: finalDeviceId,
         customerName: customerName || null,
-        customerGender: customerGender || null,
         customerAvatar: customerAvatar || null,
         items: {
           create: items.map((item: any) => ({

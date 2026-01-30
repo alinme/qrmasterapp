@@ -553,7 +553,7 @@ async function openBillDialog(table: any) {
   billDialogOpen.value = true
   // Always fetch fresh bill data when opening dialog (clears any cached old data)
   await billsStore.fetchTableBill(table.id)
-  // Check for pending bill requests and auto-populate payment info
+  // BUGFIX #9: Check for pending bill requests and auto-populate payment info
   if (billsStore.tableBill?.billRequests && billsStore.tableBill.billRequests.length > 0) {
     const latestRequest = billsStore.tableBill.billRequests[0]
     currentBillRequest.value = latestRequest
@@ -563,9 +563,20 @@ async function openBillDialog(table: any) {
       selectedOrders.value = orderIds
       // Set payment type and tip from request
       paymentType.value = latestRequest.paymentType
-      if (latestRequest.tipAmount > 0) {
+      if (latestRequest.tipAmount > 0 && latestRequest.tipType) {
         tipType.value = latestRequest.tipType as 'PERCENTAGE' | 'AMOUNT'
-        tipValue.value = latestRequest.tipValue || latestRequest.tipAmount
+        if (latestRequest.tipType === 'PERCENTAGE') {
+          tipValue.value = latestRequest.tipValue || 0
+          customTipAmount.value = 0
+        } else if (latestRequest.tipType === 'AMOUNT') {
+          customTipAmount.value = latestRequest.tipAmount
+          tipValue.value = 0
+        }
+      } else {
+        // Reset tip values if no tip in request
+        tipType.value = null
+        tipValue.value = 0
+        customTipAmount.value = 0
       }
     } catch (e) {
       console.error('Failed to parse orderIds from bill request', e)
@@ -604,13 +615,13 @@ function processBillRequest(request: any) {
       customTipAmount.value = 0
     }
     currentBillRequest.value = request
-    openPaymentDialog()
+    openPaymentDialog(false) // Don't reset tip values - keep them from bill request
   } catch (e) {
     console.error('Failed to parse orderIds', e)
   }
 }
 
-function openPaymentDialog() {
+function openPaymentDialog(resetTipValues: boolean = true) {
   if (!selectedTable.value) return
   
   // Select all unpaid orders by default
@@ -621,9 +632,13 @@ function openPaymentDialog() {
   
   selectedOrders.value = unpaidOrders.map((o: any) => o.id)
   paymentDialogOpen.value = true
-  tipType.value = null
-  tipValue.value = 0
-  customTipAmount.value = 0
+  // BUGFIX #9: Only reset tip values when explicitly requested
+  // When coming from processBillRequest, we want to keep the values from the request
+  if (resetTipValues) {
+    tipType.value = null
+    tipValue.value = 0
+    customTipAmount.value = 0
+  }
 }
 
 const selectedOrdersTotal = computed(() => {
@@ -1056,19 +1071,20 @@ async function handleViewBillRequest(request: any) {
               <RefreshCw class="mr-1 w-3 h-3" />
               Resetează Masă
             </Button>
+            <!-- BUGFIX #12: Preia Masă button always visible when table is free or owned by other -->
+            <Button
+              v-if="table.isFree || table.isOwnedByOther"
+              size="sm"
+              @click.stop="handleAssignTable(table.id)"
+              class="text-xs text-white bg-blue-600 hover:bg-blue-700"
+            >
+              <UserPlus class="mr-1 w-3 h-3" />
+              {{ table.isFree ? 'Preia Masă' : 'Preia de la ' + (table.serverEmail?.split('@')[0] || 'alt server') }}
+            </Button>
             
             <!-- Hidden Actions (shown when global toggle is on) -->
             <template v-if="showTableActions">
               <!-- Ownership Actions -->
-              <Button
-                v-if="table.isFree || table.isOwnedByOther"
-                size="sm"
-                @click.stop="handleAssignTable(table.id)"
-                class="text-xs text-white bg-blue-600 hover:bg-blue-700"
-              >
-                <UserPlus class="mr-1 w-3 h-3" />
-                {{ table.isFree ? 'Preia Masă' : 'Preia de la ' + (table.serverEmail?.split('@')[0] || 'alt server') }}
-              </Button>
               <Button
                 v-if="table.isOwnedByMe"
                 size="sm"
@@ -1219,7 +1235,7 @@ async function handleViewBillRequest(request: any) {
           <div v-for="(orders, deviceId) in billsStore.tableBill.ordersByDevice" :key="deviceId" class="space-y-2">
             <h3 class="font-semibold">
               <span v-if="orders[0]?.customerName" class="flex gap-2 items-center">
-                <span class="text-lg">{{ orders[0].customerGender === 'female' ? '👩' : '👨' }}</span>
+                <span class="text-lg">👤</span>
                 <span>{{ orders[0].customerName }}</span>
               </span>
               <span v-else>Device: {{ deviceId === 'unknown' ? 'Unknown' : (deviceId as string).slice(0, 8) }}</span>

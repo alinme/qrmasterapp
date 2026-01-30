@@ -185,7 +185,7 @@ function formatTime(dateString: string) {
               Table {{ order.table?.name || 'N/A' }} • {{ formatTime(order.createdAt) }}
             </p>
             <div v-if="order.customerName" class="flex items-center gap-2 mt-2">
-              <span class="text-xl">{{ order.customerGender === 'female' ? '👩' : '👨' }}</span>
+              <span class="text-xl">👤</span>
               <span class="font-semibold text-base">{{ order.customerName }}</span>
             </div>
           </div>

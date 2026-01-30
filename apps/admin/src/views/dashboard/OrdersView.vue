@@ -204,7 +204,7 @@ function formatDate(dateString: string) {
                 <div>#{{ order.id.slice(0, 8) }}</div>
                 <div v-if="order.customerName" class="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                   <span v-if="order.customerAvatar" class="text-lg">{{ order.customerAvatar }}</span>
-                  <span v-else class="text-lg">{{ order.customerGender === 'female' ? '👩' : '👨' }}</span>
+                  <span v-else class="text-lg">👤</span>
                   <span class="font-medium">{{ order.customerName }}</span>
                 </div>
               </TableCell>

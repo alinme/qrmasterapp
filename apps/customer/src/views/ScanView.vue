@@ -8,9 +8,9 @@ import { QrCode, Camera, Smartphone } from 'lucide-vue-next'
       <QrCode class="h-16 w-16 text-blue-400" />
     </div>
     
-    <h1 class="text-4xl font-bold mb-4">Welcome</h1>
+    <h1 class="text-4xl font-bold mb-4">Bun venit!</h1>
     <p class="text-gray-300 max-w-md mx-auto mb-8 text-lg">
-      Scan the QR code on your table to view the menu and place an order.
+      Scanează codul QR de pe masă pentru a vedea meniul și plasa o comandă.
     </p>
     
     <div class="max-w-md w-full space-y-4">
@@ -20,12 +20,12 @@ import { QrCode, Camera, Smartphone } from 'lucide-vue-next'
             <Camera class="w-6 h-6 text-blue-400" />
           </div>
           <div class="text-left">
-            <h3 class="font-semibold mb-2">How to Scan</h3>
+            <h3 class="font-semibold mb-2">Cum să scanezi</h3>
             <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-              <li>Open your device's camera app</li>
-              <li>Point it at the QR code on the table</li>
-              <li>Tap the notification that appears</li>
-              <li>Or use a QR code scanner app</li>
+              <li>Deschide aplicația cameră a telefonului</li>
+              <li>Îndreaptă camera către codul QR de pe masă</li>
+              <li>Apasă pe notificarea care apare</li>
+              <li>Sau folosește o aplicație de scanare QR</li>
             </ol>
           </div>
         </div>
@@ -37,10 +37,10 @@ import { QrCode, Camera, Smartphone } from 'lucide-vue-next'
             <Smartphone class="w-6 h-6 text-green-400" />
           </div>
           <div class="text-left">
-            <h3 class="font-semibold mb-2">Already Installed?</h3>
+            <h3 class="font-semibold mb-2">Ai mai scanat înainte?</h3>
             <p class="text-sm text-gray-300">
-              If you've scanned before, you can open this app from your home screen. 
-              Your table session will be restored automatically.
+              Daca ai mai scanat, poți deschide aplicația direct din ecranul principal.
+              Sesiunea la masă va fi restaurată automat.
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ import { QrCode, Camera, Smartphone } from 'lucide-vue-next'
 
       <div class="pt-4">
         <p class="text-xs text-gray-500">
-          Can't find the QR code? Ask your server for assistance.
+          Nu găsești codul QR? Cere ajutor chelnerului.
         </p>
       </div>
     </div>

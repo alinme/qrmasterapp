@@ -29,19 +29,19 @@ const handleDecrease = (e: Event) => {
   e.stopPropagation()
   if (props.product && quantity.value > 0) {
     cart.removeFromCart(props.product.id)
-    if (props.onQuantityChange) {
-      props.onQuantityChange(props.product, quantity.value - 1)
-    }
+    // Don't emit onQuantityChange - the cart store is the source of truth
+    // Parent component will react to cart changes via computed properties
   }
 }
 
 const handleIncrease = (e: Event) => {
   e.stopPropagation()
   if (props.product) {
+    // Don't add to cart here - let parent handle it via onQuantityChange
+    // or add here but don't emit to avoid double-add
     cart.addToCart(props.product)
-    if (props.onQuantityChange) {
-      props.onQuantityChange(props.product, quantity.value + 1)
-    }
+    // Don't emit onQuantityChange - the cart store is the source of truth
+    // Parent component will react to cart changes via computed properties
   }
 }
 

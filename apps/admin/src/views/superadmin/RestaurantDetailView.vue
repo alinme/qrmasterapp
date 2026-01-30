@@ -78,7 +78,12 @@ async function saveRestaurant() {
   
   try {
     const { logoUrl, ...updateData } = restaurantForm.value
-    await superAdminStore.updateRestaurant(restaurant.value.id, updateData)
+    // BUGFIX #2: Include all new fields in the update
+    await superAdminStore.updateRestaurant(restaurant.value.id, {
+      ...updateData,
+      contractStart: updateData.contractStart || null,
+      contractEnd: updateData.contractEnd || null
+    })
     await loadRestaurant(restaurant.value.id)
     editingRestaurant.value = false
     toast.success('Restaurant updated successfully')

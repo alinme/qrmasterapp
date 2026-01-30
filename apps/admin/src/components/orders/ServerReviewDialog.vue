@@ -62,7 +62,7 @@ function formatDate(date: string | Date) {
                 <p class="text-sm text-muted-foreground mt-1">{{ formatDate(order.createdAt) }}</p>
                 <div v-if="order.customerName" class="flex items-center gap-2 mt-2">
                   <span v-if="order.customerAvatar" class="text-2xl">{{ order.customerAvatar }}</span>
-                  <span v-else class="text-2xl">{{ order.customerGender === 'female' ? '👩' : '👨' }}</span>
+                  <span v-else class="text-2xl">👤</span>
                   <span class="font-semibold text-base">{{ order.customerName }}</span>
                 </div>
               </div>

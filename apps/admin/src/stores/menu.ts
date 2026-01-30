@@ -70,6 +70,21 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
+  // BUGFIX #3 & #7: Add delete category image function
+  async function deleteCategoryImage(categoryId: string) {
+    try {
+      const response = await axios.delete(`${API_URL}/menu/categories/${categoryId}/image`)
+      if (response.data.success) {
+        await fetchCategories()
+        return true
+      }
+    } catch (error) {
+      console.error('Failed to delete category image', error)
+      throw error
+    }
+    return false
+  }
+
   async function deleteCategoryImage(categoryId: string) {
     try {
       const response = await axios.delete(`${API_URL}/menu/categories/${categoryId}/image`)

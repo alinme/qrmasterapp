@@ -163,7 +163,6 @@ model Order {
   notes         String?
   deviceId      String? // Unique identifier for the device/customer that placed this order
   customerName  String?     // Customer name for this order
-  customerGender String?    // Customer gender: "male" or "female"
   customerAvatar String?    // Customer avatar URL or placeholder
   paymentStatus String      @default("UNPAID") // UNPAID, PARTIALLY_PAID, PAID
   items         OrderItem[]
