@@ -21,7 +21,6 @@ function getDeviceId(): string {
 
 export interface CustomerProfile {
   name: string
-  gender: 'male' | 'female'
   avatar: string | null
 }
 

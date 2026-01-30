@@ -41,7 +41,7 @@ router.get('/restaurants', authenticateToken, requireSuperAdmin, async (req: Aut
 // Create restaurant (Super Admin only)
 router.post('/restaurants', authenticateToken, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { name, slug, address, logoUrl } = req.body;
+    const { name, slug, address, logoUrl, phoneNumber, contactPerson, contractStart, contractEnd } = req.body;
 
     if (!name || !slug) {
       return res.status(400).json({ success: false, error: 'Name and slug are required' });
@@ -58,7 +58,11 @@ router.post('/restaurants', authenticateToken, requireSuperAdmin, async (req: Au
         name,
         slug,
         address: address || null,
-        logoUrl: logoUrl || null
+        logoUrl: logoUrl || null,
+        phoneNumber: phoneNumber || null,
+        contactPerson: contactPerson || null,
+        contractStart: contractStart ? new Date(contractStart) : null,
+        contractEnd: contractEnd ? new Date(contractEnd) : null
       },
       include: {
         users: true,
@@ -83,7 +87,7 @@ router.post('/restaurants', authenticateToken, requireSuperAdmin, async (req: Au
 router.put('/restaurants/:id', authenticateToken, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, slug, address, logoUrl } = req.body;
+    const { name, slug, address, logoUrl, phoneNumber, contactPerson, contractStart, contractEnd } = req.body;
 
     // Check if slug is being changed and if it's already taken
     if (slug) {
@@ -94,10 +98,14 @@ router.put('/restaurants/:id', authenticateToken, requireSuperAdmin, async (req:
     }
 
     const updateData: any = {};
-    if (name) updateData.name = name;
-    if (slug) updateData.slug = slug;
+    if (name !== undefined) updateData.name = name;
+    if (slug !== undefined) updateData.slug = slug;
     if (address !== undefined) updateData.address = address;
     if (logoUrl !== undefined) updateData.logoUrl = logoUrl;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+    if (contactPerson !== undefined) updateData.contactPerson = contactPerson;
+    if (contractStart !== undefined) updateData.contractStart = contractStart ? new Date(contractStart) : null;
+    if (contractEnd !== undefined) updateData.contractEnd = contractEnd ? new Date(contractEnd) : null;
 
     const restaurant = await prisma.restaurant.update({
       where: { id },

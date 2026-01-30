@@ -27,7 +27,11 @@ const restaurantForm = ref({
   name: '',
   slug: '',
   address: '',
-  logoUrl: ''
+  logoUrl: '',
+  phoneNumber: '',
+  contactPerson: '',
+  contractStart: '',
+  contractEnd: ''
 })
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
@@ -52,7 +56,11 @@ async function loadRestaurant(id: string) {
       name: data.name,
       slug: data.slug,
       address: data.address || '',
-      logoUrl: data.logoUrl || ''
+      logoUrl: data.logoUrl || '',
+      phoneNumber: data.phoneNumber || '',
+      contactPerson: data.contactPerson || '',
+      contractStart: data.contractStart ? data.contractStart.split('T')[0] : '',
+      contractEnd: data.contractEnd ? data.contractEnd.split('T')[0] : ''
     }
   } catch (error: any) {
     toast.error(error.response?.data?.error || 'Failed to load restaurant')
@@ -79,13 +87,22 @@ async function saveRestaurant() {
   }
 }
 
+function formatDate(dateString: string | null | undefined) {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleDateString('ro-RO')
+}
+
 function cancelEditRestaurant() {
   if (restaurant.value) {
     restaurantForm.value = {
       name: restaurant.value.name,
       slug: restaurant.value.slug,
       address: restaurant.value.address || '',
-      logoUrl: restaurant.value.logoUrl || ''
+      logoUrl: restaurant.value.logoUrl || '',
+      phoneNumber: restaurant.value.phoneNumber || '',
+      contactPerson: restaurant.value.contactPerson || '',
+      contractStart: restaurant.value.contractStart ? restaurant.value.contractStart.split('T')[0] : '',
+      contractEnd: restaurant.value.contractEnd ? restaurant.value.contractEnd.split('T')[0] : ''
     }
   }
   editingRestaurant.value = false
@@ -291,6 +308,53 @@ async function handleLogoUpload(event: Event) {
               placeholder="Restaurant Address"
               rows="2"
             />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <Label for="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                v-model="restaurantForm.phoneNumber"
+                :disabled="!editingRestaurant"
+                placeholder="+40 123 456 789"
+              />
+            </div>
+            <div>
+              <Label for="contactPerson">Contact Person</Label>
+              <Input
+                id="contactPerson"
+                v-model="restaurantForm.contactPerson"
+                :disabled="!editingRestaurant"
+                placeholder="Contact Person Name"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <Label for="contractStart">Contract Start Date</Label>
+              <Input
+                id="contractStart"
+                v-model="restaurantForm.contractStart"
+                :disabled="!editingRestaurant"
+                type="date"
+              />
+            </div>
+            <div>
+              <Label for="contractEnd">Contract End Date</Label>
+              <Input
+                id="contractEnd"
+                v-model="restaurantForm.contractEnd"
+                :disabled="!editingRestaurant"
+                type="date"
+              />
+            </div>
+          </div>
+          <!-- Display contract dates when not editing -->
+          <div v-if="!editingRestaurant && (restaurant?.contractStart || restaurant?.contractEnd)" class="p-3 bg-muted rounded-lg">
+            <p class="text-sm text-muted-foreground">
+              <span class="font-medium">Contract Period:</span>
+              {{ formatDate(restaurant?.contractStart) }} - {{ formatDate(restaurant?.contractEnd) }}
+            </p>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
             <div>

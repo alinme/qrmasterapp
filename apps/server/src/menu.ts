@@ -155,6 +155,39 @@ router.post('/categories/:categoryId/image', authenticateToken, upload.single('f
   }
 });
 
+// Delete category image
+router.delete('/categories/:categoryId/image', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { categoryId } = req.params;
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+    
+    const category = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!category || category.restaurantId !== req.user.restaurantId) {
+      return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+
+    // Delete old image if exists
+    if (category.imageUrl) {
+      try {
+        await deleteFile(category.imageUrl);
+      } catch (e) {
+        console.error('Failed to delete old category image:', e);
+      }
+    }
+
+    // Update category to remove image URL
+    const updated = await prisma.category.update({
+      where: { id: categoryId },
+      data: { imageUrl: null }
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Failed to delete category image' });
+  }
+});
+
 // Delete Category
 router.delete('/categories/:categoryId', authenticateToken, async (req: AuthRequest, res: Response) => {
   const { categoryId } = req.params;
@@ -164,6 +197,15 @@ router.delete('/categories/:categoryId', authenticateToken, async (req: AuthRequ
     const category = await prisma.category.findUnique({ where: { id: categoryId } });
     if (!category || category.restaurantId !== req.user.restaurantId) {
       return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+
+    // Delete category image if exists
+    if (category.imageUrl) {
+      try {
+        await deleteFile(category.imageUrl);
+      } catch (e) {
+        console.error('Failed to delete category image file:', e);
+      }
     }
 
     await prisma.category.delete({ where: { id: categoryId } });

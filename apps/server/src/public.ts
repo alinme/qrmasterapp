@@ -678,4 +678,52 @@ router.get('/tables/:tableId/server', async (req: Request, res: Response) => {
   }
 });
 
+// Call waiter (notify server)
+router.post('/tables/:tableId/call-waiter', async (req: Request, res: Response) => {
+  try {
+    const { tableId } = req.params as { tableId: string };
+    const { tableToken, message, deviceId } = req.body;
+
+    if (!tableToken) {
+      return res.status(400).json({ success: false, error: 'Table token required' });
+    }
+
+    // Validate table session
+    const session = await prisma.tableSession.findFirst({
+      where: {
+        token: tableToken,
+        tableId,
+        active: true
+      },
+      include: {
+        table: {
+          include: { restaurant: true }
+        }
+      }
+    });
+
+    if (!session) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired table token' });
+    }
+
+    // Emit socket event to notify waiter
+    const io = getSocket();
+    io.to(`restaurant_${session.table.restaurantId}`).emit('waiter_called', {
+      tableId,
+      tableName: session.table.name,
+      message: message || 'Clientul a chemat chelnerul',
+      deviceId: deviceId || null,
+      timestamp: new Date().toISOString()
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Chelnerul a fost notificat'
+    });
+  } catch (error) {
+    console.error('Call waiter error:', error);
+    res.status(500).json({ success: false, error: 'Failed to call waiter' });
+  }
+});
+
 export default router;

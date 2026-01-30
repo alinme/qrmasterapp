@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useCartStore } from '@/stores/cart'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle, UtensilsCrossed } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const orderStore = useOrderStore()
 const cart = useCartStore()
 const loading = ref(false)
@@ -94,6 +95,12 @@ watch(() => orderStore.orders, async (newOrders, oldOrders) => {
 function orderMore() {
   if (cart.restaurantSlug) {
     router.push({ name: 'restaurant-menu', params: { slug: cart.restaurantSlug } })
+  } else {
+    // Fallback - try to get slug from current route
+    const slug = route.params.slug
+    if (slug) {
+      router.push({ name: 'restaurant-menu', params: { slug } })
+    }
   }
 }
 </script>

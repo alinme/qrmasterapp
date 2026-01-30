@@ -45,7 +45,8 @@ const baseTipOptions = [
   { label: '15%', value: 15 },
   { label: '20%', value: 20 },
   { label: '25%', value: 25 },
-  { label: 'Custom', value: 'custom' }
+  { label: 'Custom %', value: 'custom' },
+  { label: 'Sumă fixă (RON)', value: 'amount' }
 ]
 
 // Computed tip options that includes custom percentage from client request
@@ -407,6 +408,31 @@ async function markAsServed(orderId: string) {
   }
 }
 
+// BUGFIX #5: Mark all ready orders as served for a table
+async function markAllReadyAsServed(table: any) {
+  try {
+    const readyOrders = ordersStore.orders.filter(o => 
+      o.tableId === table.id && o.status === 'READY'
+    )
+    
+    if (readyOrders.length === 0) {
+      toast.error('Nu există comenzi gata de servit')
+      return
+    }
+    
+    // Mark all ready orders as served
+    for (const order of readyOrders) {
+      await ordersStore.updateOrderStatus(order.id, 'SERVED')
+    }
+    
+    toast.success(`${readyOrders.length} comenzi marcate ca servite`)
+    await billsStore.fetchTables()
+    updateReadyOrders()
+  } catch (error: any) {
+    toast.error(error.response?.data?.error || 'Failed to mark orders as served')
+  }
+}
+
 const tablesWithBills = computed(() => {
   // Use a stable reference to orders to avoid recomputation loops
   const orders = ordersStore.orders
@@ -678,8 +704,11 @@ const tipSelectValue = computed(() => {
     // If it's a custom percentage, return 'custom'
     return 'custom'
   }
-  if (tipType.value === 'AMOUNT') {
+  if (tipType.value === 'PERCENTAGE' && tipValue.value === 0) {
     return 'custom'
+  }
+  if (tipType.value === 'AMOUNT') {
+    return 'amount'
   }
   return undefined
 })
@@ -693,7 +722,12 @@ const showCustomPercentageInput = computed(() => {
 })
 
 function handleTipSelection(value: any) {
-  if (!value || value === 'custom') {
+  if (value === 'amount') {
+    // BUGFIX #11: Select AMOUNT type for fixed tip
+    tipType.value = 'AMOUNT'
+    tipValue.value = 0
+    customTipAmount.value = 0
+  } else if (!value || value === 'custom') {
     tipType.value = 'PERCENTAGE'
     tipValue.value = 0
   } else {
@@ -768,7 +802,7 @@ async function handleViewBillRequest(request: any) {
           :class="{ 
             'bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700': billRequests.length > 0 
           }"
-        >
+        > 
           <Bell class="mr-2 w-4 h-4" />
           Notificări
           <Badge v-if="billRequests.length > 0" class="ml-2 bg-orange-600 dark:bg-orange-500">
@@ -878,7 +912,7 @@ async function handleViewBillRequest(request: any) {
       <p>No tables with active orders</p>
     </div>
 
-    <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div v-else class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         <Card
         v-for="table in tablesWithBills"
         :key="table.id"
@@ -1000,6 +1034,27 @@ async function handleViewBillRequest(request: any) {
             >
               <CheckCircle class="mr-1 w-3 h-3" />
               Setează Gata
+            </Button>
+            <!-- BUGFIX #5: Mark as Served button directly in table list -->
+            <Button
+              v-if="(table.isOwnedByMe || table.isFree) && table.hasReadyOrders"
+              size="sm"
+              @click.stop="markAllReadyAsServed(table)"
+              class="text-xs text-white bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle class="mr-1 w-3 h-3" />
+              Servit ({{ table.readyOrderCount }})
+            </Button>
+            <!-- BUGFIX #13: Reset table button shown after all orders are served -->
+            <Button
+              v-if="(table.isOwnedByMe || table.isFree) && table.status === 'READY' && !table.hasReadyOrders && table.remainingAmount <= 0"
+              variant="outline"
+              size="sm"
+              @click.stop="resetTable(table.id)"
+              class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-400"
+            >
+              <RefreshCw class="mr-1 w-3 h-3" />
+              Resetează Masă
             </Button>
             
             <!-- Hidden Actions (shown when global toggle is on) -->
@@ -1350,22 +1405,19 @@ async function handleViewBillRequest(request: any) {
               />
             </div>
             
+            <!-- BUGFIX #11: Fixed custom tip amount calculation -->
             <div v-if="tipType === 'AMOUNT'" class="mt-2 space-y-2">
-              <Label>Custom Tip (Amount)</Label>
+              <Label>Valoare Bacșiș (RON)</Label>
               <Input
                 type="number"
                 v-model.number="customTipAmount"
-                placeholder="Enter amount (e.g., 10.50)"
+                placeholder="Ex: 10"
                 min="0"
                 step="0.01"
               />
-              <Button
-                size="sm"
-                variant="outline"
-                @click="tipType = 'AMOUNT'; tipValue = customTipAmount"
-              >
-                Apply Amount
-              </Button>
+              <p class="text-xs text-muted-foreground">
+                Se va adăuga {{ customTipAmount || 0 }} RON fix, nu procent.
+              </p>
             </div>
           </div>
 

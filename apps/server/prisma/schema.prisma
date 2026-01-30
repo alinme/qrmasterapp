@@ -9,13 +9,17 @@ datasource db {
 
 // Tenant
 model Restaurant {
-  id        String   @id @default(uuid())
-  slug      String   @unique
-  name      String
-  address   String?
-  logoUrl   String? // Restaurant logo/image URL
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String    @id @default(uuid())
+  slug            String    @unique
+  name            String
+  address         String?
+  logoUrl         String? // Restaurant logo/image URL
+  phoneNumber     String? // Restaurant contact phone
+  contactPerson   String? // Name of contact person
+  contractStart   DateTime? // Contract period start date
+  contractEnd     DateTime? // Contract period end date
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   users      User[]
   categories Category[]

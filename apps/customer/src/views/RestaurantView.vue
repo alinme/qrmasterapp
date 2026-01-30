@@ -228,18 +228,23 @@ function openProductDrawer(product: any) {
 }
 
 function handleQuantityChange(product: any, qty: number) {
-  // Remove all existing items of this product from cart
+  // Get current quantity in cart
   const existingItem = cart.items.find(i => i.productId === product.id)
-  if (existingItem) {
-    // Remove all instances
-    const index = cart.items.findIndex(i => i.productId === product.id)
-    if (index > -1) {
-      cart.items.splice(index, 1)
+  const currentQty = existingItem ? existingItem.quantity : 0
+  
+  // Calculate the difference
+  const diff = qty - currentQty
+  
+  if (diff > 0) {
+    // Add items
+    for (let i = 0; i < diff; i++) {
+      cart.addToCart(product)
     }
-  }
-  // Add the new quantity
-  for (let i = 0; i < qty; i++) {
-    cart.addToCart(product)
+  } else if (diff < 0) {
+    // Remove items
+    for (let i = 0; i < Math.abs(diff); i++) {
+      cart.removeFromCart(product.id)
+    }
   }
 }
 
@@ -366,12 +371,29 @@ function isFavorite(productId: string) {
   return favorites.value.has(productId)
 }
 
-function handleCallWaiter(message: string) {
-  // In a real app, this would send a message to the server/waiter
-  console.log('Server called:', message)
-  toast.info('Server chemat', {
-    description: message,
-  })
+async function handleCallWaiter(message: string) {
+  if (!cart.tableToken || !cart.tableId) {
+    toast.error('Eroare', {
+      description: 'Te rugăm să scanezi mai întâi codul QR de pe masă',
+    })
+    return
+  }
+  
+  try {
+    await axios.post(`${API_URL}/public/tables/${cart.tableId}/call-waiter`, {
+      tableToken: cart.tableToken,
+      message: message,
+      deviceId: cart.deviceId
+    })
+    toast.success('Server chemat', {
+      description: message,
+    })
+  } catch (error: any) {
+    console.error('Failed to call waiter:', error)
+    toast.error('Eroare', {
+      description: error.response?.data?.error || 'Nu s-a putut contacta serverul. Încearcă din nou.',
+    })
+  }
 }
 
 async function handleOrderClick() {
@@ -385,7 +407,7 @@ function handleRequestCheck(_message: string) {
   router.push({ name: 'split-bill' })
 }
 
-function handleProfileSave(profile: { name: string; gender: 'male' | 'female'; avatar: string | null }) {
+function handleProfileSave(profile: { name: string; avatar: string | null }) {
   cart.saveCustomerProfile(profile)
   profileModalOpen.value = false
   // Remove setupProfile query param

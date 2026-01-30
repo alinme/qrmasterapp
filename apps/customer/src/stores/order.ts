@@ -215,7 +215,6 @@ export const useOrderStore = defineStore('order', () => {
         })),
         notes: notes || null,
         customerName: cart.customerProfile?.name || null,
-        customerGender: cart.customerProfile?.gender || null,
         customerAvatar: cart.customerProfile?.avatar || null
       })
 

@@ -315,15 +315,23 @@ router.post('/payments', authenticateToken, requireStaffOrAbove, async (req: Aut
         // Update order payment status (base amount only, tips don't count toward order payment)
         const newPaid = order.payments.reduce((sum: number, p: PaymentLike) => sum + (p.amount || 0), 0) + paymentAmount;
         let paymentStatus = 'UNPAID';
+        let orderStatus = order.status;
         if (newPaid >= order.total) {
           paymentStatus = 'PAID';
+          // BUGFIX #10: When fully paid, automatically mark order as SERVED
+          if (order.status !== 'SERVED' && order.status !== 'CANCELLED') {
+            orderStatus = 'SERVED';
+          }
         } else if (newPaid > 0) {
           paymentStatus = 'PARTIALLY_PAID';
         }
 
         await prisma.order.update({
           where: { id: order.id },
-          data: { paymentStatus }
+          data: { 
+            paymentStatus,
+            ...(orderStatus !== order.status && { status: orderStatus })
+          }
         });
       }
     }

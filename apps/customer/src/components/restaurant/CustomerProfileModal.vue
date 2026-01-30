@@ -11,19 +11,18 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'save': [profile: { name: string; gender: 'male' | 'female'; avatar: string | null }]
+  'save': [profile: { name: string; avatar: string | null }]
 }>()
 
 const customerName = ref('')
-const customerGender = ref<'male' | 'female'>('male')
 const avatarUrl = ref<string | null>(null)
 const error = ref('')
 
-// Generate avatar placeholder based on gender
+// Generate avatar placeholder
 const avatarPlaceholder = computed(() => {
   if (avatarUrl.value) return avatarUrl.value
-  // Return emoji or icon based on gender
-  return customerGender.value === 'male' ? '👨' : '👩'
+  // Return generic user emoji
+  return '👤'
 })
 
 function handleSave() {
@@ -34,13 +33,11 @@ function handleSave() {
   
   emit('save', {
     name: customerName.value.trim(),
-    gender: customerGender.value,
     avatar: avatarUrl.value
   })
   
   // Reset form
   customerName.value = ''
-  customerGender.value = 'male'
   avatarUrl.value = null
   error.value = ''
 }
@@ -114,29 +111,6 @@ function handleAvatarChange(event: Event) {
             @keyup.enter="handleSave"
           />
           <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
-        </div>
-
-        <!-- Gender Selection -->
-        <div class="space-y-2">
-          <Label>Gen</Label>
-          <div class="flex gap-2">
-            <Button
-              :variant="customerGender === 'male' ? 'default' : 'outline'"
-              :class="customerGender === 'male' ? 'bg-blue-600 hover:bg-blue-700' : ''"
-              @click="customerGender = 'male'"
-              class="flex-1"
-            >
-              👨 Bărbat
-            </Button>
-            <Button
-              :variant="customerGender === 'female' ? 'default' : 'outline'"
-              :class="customerGender === 'female' ? 'bg-pink-600 hover:bg-pink-700' : ''"
-              @click="customerGender = 'female'"
-              class="flex-1"
-            >
-              👩 Femeie
-            </Button>
-          </div>
         </div>
 
         <!-- Save Button -->

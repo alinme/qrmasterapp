@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Plus, Edit, Trash2, X, Upload, Image as ImageIcon, Link as LinkIcon, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { toast } from 'vue-sonner'
 
 const menuStore = useMenuStore()
 const newCategoryName = ref('')
@@ -147,6 +148,22 @@ async function saveCategory() {
     closeCategoryDialog()
   } catch (error) {
     alert('Failed to save category')
+  }
+}
+
+async function deleteCategoryImageHandler() {
+  if (!editingCategory.value) return
+  
+  if (!confirm('Are you sure you want to delete this category image?')) return
+  
+  try {
+    await menuStore.deleteCategoryImage(editingCategory.value.id)
+    categoryImagePreview.value = null
+    categoryImageFile.value = null
+    toast.success('Category image deleted successfully')
+  } catch (error) {
+    console.error('Failed to delete category image', error)
+    toast.error('Failed to delete category image')
   }
 }
 
@@ -869,8 +886,16 @@ async function removeRelation(relationId: string) {
           <div>
             <Label>Category Image</Label>
             <div class="mt-2">
-              <div v-if="categoryImagePreview" class="mb-4">
+              <div v-if="categoryImagePreview" class="relative mb-4">
                 <img :src="categoryImagePreview" alt="Category" class="object-cover w-full h-48 rounded-lg border" />
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  class="absolute top-2 right-2"
+                  @click="deleteCategoryImageHandler"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </Button>
               </div>
               <label class="flex flex-col justify-center items-center w-full h-32 rounded-lg border-2 border-dashed transition cursor-pointer hover:bg-accent">
                 <Upload class="mb-2 w-8 h-8 text-muted-foreground" />
