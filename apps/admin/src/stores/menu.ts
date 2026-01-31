@@ -292,6 +292,34 @@ export const useMenuStore = defineStore('menu', () => {
     return false
   }
 
+  // Menu Scheduling - Update category schedule
+  async function updateCategorySchedule(categoryId: string, schedule: any) {
+    try {
+      const response = await axios.put(`${API_URL}/menu/categories/${categoryId}/schedule`, schedule)
+      if (response.data.success) {
+        await fetchCategories()
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to update category schedule', error)
+      throw error
+    }
+  }
+
+  // Menu Scheduling - Update product schedule
+  async function updateProductSchedule(productId: string, schedule: any) {
+    try {
+      const response = await axios.put(`${API_URL}/menu/products/${productId}/schedule`, schedule)
+      if (response.data.success) {
+        await fetchCategories()
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to update product schedule', error)
+      throw error
+    }
+  }
+
   return { 
     categories,
     allergens,
@@ -312,6 +340,8 @@ export const useMenuStore = defineStore('menu', () => {
     deleteProductRelation,
     createAllergen,
     updateAllergen,
-    deleteAllergen
+    deleteAllergen,
+    updateCategorySchedule,
+    updateProductSchedule
   }
 })

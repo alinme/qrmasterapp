@@ -64,6 +64,13 @@ model Category {
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   products     Product[]
+  
+  // Menu Scheduling - when is this category available
+  scheduleEnabled Boolean @default(false) // If true, category follows schedule
+  scheduleStart   String? // Start time (e.g., "07:00")
+  scheduleEnd     String? // End time (e.g., "11:00")
+  scheduleDays    String? // JSON array: [1,2,3,4,5] = Mon-Fri (1=Monday, 7=Sunday)
+  
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -78,6 +85,12 @@ model Product {
   nutritionalValues String? // JSON: { calories, protein, carbs, fat, fiber, sugar, sodium }
   isAvailable       Boolean           @default(true)
   isFeatured        Boolean           @default(false) // If true, this product appears in featured section
+  
+  // Product Scheduling - override category schedule
+  scheduleEnabled   Boolean           @default(false) // If true, product follows its own schedule
+  scheduleStart     String? // Start time (e.g., "11:00")
+  scheduleEnd       String? // End time (e.g., "17:00")
+  scheduleDays      String? // JSON array: [1,2,3,4,5] = Mon-Fri
   allergens         String? // JSON array of allergen strings
   modifiers         String? // JSON: { sizes: [{name, price}], extras: [{name, price}] }
   isCombo           Boolean           @default(false) // If true, this is a combo base product

@@ -6,7 +6,42 @@ type PaymentLike = { amount?: number; tipAmount?: number; total?: number };
 
 const router = Router();
 
+// Helper function to check if category/product is available based on schedule
+function isAvailableBySchedule(
+  scheduleEnabled: boolean,
+  scheduleStart: string | null,
+  scheduleEnd: string | null,
+  scheduleDays: string | null
+): boolean {
+  if (!scheduleEnabled) return true;
+  
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const currentTime = now.getHours() * 60 + now.getMinutes(); // Minutes since midnight
+  
+  // Check days
+  if (scheduleDays) {
+    const days = JSON.parse(scheduleDays) as number[];
+    // Convert JS day (0=Sun) to our format (1=Mon, 7=Sun)
+    const adjustedDay = currentDay === 0 ? 7 : currentDay;
+    if (!days.includes(adjustedDay)) return false;
+  }
+  
+  // Check time
+  if (scheduleStart && scheduleEnd) {
+    const [startHour, startMin] = scheduleStart.split(':').map(Number);
+    const [endHour, endMin] = scheduleEnd.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    
+    if (currentTime < startMinutes || currentTime > endMinutes) return false;
+  }
+  
+  return true;
+}
+
 // Get restaurant by slug (Public)
+// Filters categories and products based on schedule
 router.get('/restaurant/:slug', async (req: Request, res: Response) => {
   const { slug } = req.params;
   try {
@@ -41,7 +76,32 @@ router.get('/restaurant/:slug', async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: 'Restaurant not found' });
     }
 
-    res.json({ success: true, data: restaurant });
+    // Filter categories and products by schedule
+    const filteredCategories = restaurant.categories
+      .filter(cat => isAvailableBySchedule(
+        cat.scheduleEnabled,
+        cat.scheduleStart,
+        cat.scheduleEnd,
+        cat.scheduleDays
+      ))
+      .map(cat => ({
+        ...cat,
+        products: cat.products.filter(prod => isAvailableBySchedule(
+          prod.scheduleEnabled,
+          prod.scheduleStart,
+          prod.scheduleEnd,
+          prod.scheduleDays
+        ))
+      }))
+      .filter(cat => cat.products.length > 0); // Remove empty categories
+
+    res.json({ 
+      success: true, 
+      data: {
+        ...restaurant,
+        categories: filteredCategories
+      }
+    });
   } catch (error) {
     console.error('Get public restaurant error:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch restaurant' });

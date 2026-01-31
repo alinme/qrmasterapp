@@ -521,4 +521,66 @@ router.delete('/allergens/:allergenId', authenticateToken, async (req: AuthReque
   }
 });
 
+// --- Menu Scheduling ---
+
+// Update category schedule
+router.put('/categories/:categoryId/schedule', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { categoryId } = req.params;
+  const { scheduleEnabled, scheduleStart, scheduleEnd, scheduleDays } = req.body;
+  
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+    
+    const category = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!category || category.restaurantId !== req.user.restaurantId) {
+      return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+
+    const updated = await prisma.category.update({
+      where: { id: categoryId },
+      data: {
+        scheduleEnabled: scheduleEnabled || false,
+        scheduleStart: scheduleStart || null,
+        scheduleEnd: scheduleEnd || null,
+        scheduleDays: scheduleDays ? JSON.stringify(scheduleDays) : null
+      }
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Failed to update category schedule' });
+  }
+});
+
+// Update product schedule
+router.put('/products/:productId/schedule', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { productId } = req.params;
+  const { scheduleEnabled, scheduleStart, scheduleEnd, scheduleDays } = req.body;
+  
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+    
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product || product.restaurantId !== req.user.restaurantId) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
+
+    const updated = await prisma.product.update({
+      where: { id: productId },
+      data: {
+        scheduleEnabled: scheduleEnabled || false,
+        scheduleStart: scheduleStart || null,
+        scheduleEnd: scheduleEnd || null,
+        scheduleDays: scheduleDays ? JSON.stringify(scheduleDays) : null
+      }
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Failed to update product schedule' });
+  }
+});
+
 export default router;
