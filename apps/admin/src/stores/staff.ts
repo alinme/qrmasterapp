@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 export const useStaffStore = defineStore('staff', () => {
   const staff = ref<any[]>([])
   const loading = ref(false)
+  const isSaving = ref(false)
 
   async function fetchStaff() {
     loading.value = true
@@ -25,6 +26,7 @@ export const useStaffStore = defineStore('staff', () => {
   }
 
   async function createStaff(staffData: any) {
+    isSaving.value = true
     try {
       const response = await axios.post(`${API_URL}/users/staff`, staffData)
       if (response.data.success) {
@@ -34,10 +36,13 @@ export const useStaffStore = defineStore('staff', () => {
     } catch (error) {
       console.error('Failed to create staff', error)
       throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
   async function updateStaff(id: string, staffData: any) {
+    isSaving.value = true
     try {
       const response = await axios.put(`${API_URL}/users/staff/${id}`, staffData)
       if (response.data.success) {
@@ -47,10 +52,13 @@ export const useStaffStore = defineStore('staff', () => {
     } catch (error) {
       console.error('Failed to update staff', error)
       throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
   async function deleteStaff(id: string) {
+    isSaving.value = true
     try {
       const response = await axios.delete(`${API_URL}/users/staff/${id}`)
       if (response.data.success) {
@@ -60,12 +68,15 @@ export const useStaffStore = defineStore('staff', () => {
     } catch (error) {
       console.error('Failed to delete staff', error)
       throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
   return {
     staff,
     loading,
+    isSaving,
     fetchStaff,
     createStaff,
     updateStaff,

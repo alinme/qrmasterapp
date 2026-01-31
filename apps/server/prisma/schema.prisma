@@ -157,7 +157,7 @@ model Order {
   restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
   tableId       String
   table         Table       @relation(fields: [tableId], references: [id])
-  status        String      @default("RECEIVED") // RECEIVED, SERVER_REVIEW, PREPARING, READY, SERVED, CANCELLED
+  status        String      @default("RECEIVED") // RECEIVED, SERVER_REVIEW, PENDING, PREPARING, READY, SERVED, CANCELLED
   serverNotes   String?     // Notes added by server during review
   total         Float
   notes         String?
@@ -165,6 +165,7 @@ model Order {
   customerName  String?     // Customer name for this order
   customerAvatar String?    // Customer avatar URL or placeholder
   paymentStatus String      @default("UNPAID") // UNPAID, PARTIALLY_PAID, PAID
+  claimedAt     DateTime?   // When chef claimed the order (started preparing)
   items         OrderItem[]
   payments      Payment[]
   createdAt     DateTime    @default(now())

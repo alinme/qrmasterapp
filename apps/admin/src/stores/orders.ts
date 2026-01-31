@@ -10,6 +10,7 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000'
 export const useOrdersStore = defineStore('orders', () => {
   const orders = ref<any[]>([])
   const loading = ref(false)
+  const isSaving = ref(false)
   const socket = ref<Socket | null>(null)
   const authStore = useAuthStore()
 
@@ -74,6 +75,7 @@ export const useOrdersStore = defineStore('orders', () => {
   }
 
   async function updateOrderStatus(orderId: string, status: string) {
+    isSaving.value = true
     try {
       const response = await axios.put(`${API_URL}/orders/${orderId}/status`, { status })
       if (response.data.success) {
@@ -83,6 +85,24 @@ export const useOrdersStore = defineStore('orders', () => {
     } catch (error) {
       console.error('Failed to update order status', error)
       throw error
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function claimOrder(orderId: string) {
+    isSaving.value = true
+    try {
+      const response = await axios.post(`${API_URL}/orders/${orderId}/claim`)
+      if (response.data.success) {
+        // Socket will handle the update via order_updated event
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to claim order', error)
+      throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
@@ -99,6 +119,7 @@ export const useOrdersStore = defineStore('orders', () => {
   }
 
   async function reviewOrder(orderId: string, serverNotes?: string, sendToKitchen: boolean = true) {
+    isSaving.value = true
     try {
       const response = await axios.post(`${API_URL}/orders/${orderId}/review`, {
         serverNotes,
@@ -111,17 +132,21 @@ export const useOrdersStore = defineStore('orders', () => {
     } catch (error) {
       console.error('Failed to review order', error)
       throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
   return {
     orders,
     loading,
+    isSaving,
     socket,
     fetchOrders,
     updateOrderStatus,
     fetchOrder,
     reviewOrder,
+    claimOrder,
     connectSocket,
     disconnectSocket
   }

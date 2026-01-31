@@ -243,8 +243,10 @@ async function handleLogoUpload(event: Event) {
               Edit
             </Button>
             <div v-else class="flex gap-2">
-              <Button size="sm" @click="saveRestaurant">Save</Button>
-              <Button size="sm" variant="outline" @click="cancelEditRestaurant">Cancel</Button>
+              <Button size="sm" @click="saveRestaurant" :loading="superAdminStore.isSaving" :disabled="superAdminStore.isSaving">
+                {{ superAdminStore.isSaving ? 'Saving...' : 'Save' }}
+              </Button>
+              <Button size="sm" variant="outline" @click="cancelEditRestaurant" :disabled="superAdminStore.isSaving">Cancel</Button>
             </div>
           </div>
         </CardHeader>
@@ -426,8 +428,10 @@ async function handleLogoUpload(event: Event) {
                     </Select>
                   </div>
                   <div class="flex justify-end gap-2">
-                    <Button variant="outline" @click="userDialogOpen = false">Cancel</Button>
-                    <Button @click="saveUser">Save</Button>
+                    <Button variant="outline" @click="userDialogOpen = false" :disabled="superAdminStore.isSaving">Cancel</Button>
+                    <Button @click="saveUser" :loading="superAdminStore.isSaving" :disabled="superAdminStore.isSaving">
+                      {{ superAdminStore.isSaving ? 'Saving...' : 'Save' }}
+                    </Button>
                   </div>
                 </div>
               </DialogContent>

@@ -37,6 +37,28 @@ const billRequests = ref<any[]>([])
 const notificationsPanelOpen = ref(false)
 const showTableActions = ref(false)
 
+// New Order Popup
+const newOrderPopupOpen = ref(false)
+const newOrderPopupOrder = ref<any>(null)
+
+function showNewOrderPopup(order: any) {
+  newOrderPopupOrder.value = order
+  newOrderPopupOpen.value = true
+}
+
+function closeNewOrderPopup() {
+  newOrderPopupOpen.value = false
+  newOrderPopupOrder.value = null
+}
+
+function handleReviewFromPopup() {
+  if (!newOrderPopupOrder.value) return
+  
+  // Open the review dialog with the order
+  openReviewDialog(newOrderPopupOrder.value)
+  closeNewOrderPopup()
+}
+
 // Base tip options
 const baseTipOptions = [
   { label: '0%', value: 0 },
@@ -125,11 +147,18 @@ function setupSocketListeners() {
   handleNewOrder = (order: any) => {
     const isMyTable = order.tableServerId === null || order.tableServerId === authStore.user?.id
     if (isMyTable && order.status === 'SERVER_REVIEW') {
+      // Show persistent popup
+      showNewOrderPopup(order)
+      
+      // Also show toast
       toast.info('Comandă nouă de revizuit', {
         description: `Masă: ${order.table?.name || 'N/A'}, Total: ${order.total.toFixed(2)} RON`,
         duration: 5000
       })
+      
+      // Play sound
       playNotificationSound()
+      
       if (order.tableId) {
         flashingReviewTableIds.value.add(order.tableId)
         setTimeout(() => flashingReviewTableIds.value.delete(order.tableId), 3000)
@@ -1469,5 +1498,61 @@ async function handleViewBillRequest(request: any) {
       @update:open="reviewDialogOpen = $event"
       @review="handleReview"
     />
+
+    <!-- New Order Persistent Popup -->
+    <Dialog :open="newOrderPopupOpen" @update:open="(val) => { if (!val) closeNewOrderPopup() }">
+      <DialogContent class="max-w-md border-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20">
+        <DialogHeader>
+          <DialogTitle class="flex items-center gap-2 text-2xl text-purple-700 dark:text-purple-300">
+            <Bell class="w-6 h-6 animate-bounce" />
+            Comandă Nouă!
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div v-if="newOrderPopupOrder" class="space-y-4">
+          <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-purple-200">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-xl font-bold">Masă: {{ newOrderPopupOrder.table?.name || 'N/A' }}</h3>
+              <Badge class="bg-purple-600 text-white text-lg px-3 py-1">
+                {{ newOrderPopupOrder.total.toFixed(2) }} RON
+              </Badge>
+            </div>
+            
+            <div class="space-y-2">
+              <div
+                v-for="item in newOrderPopupOrder.items"
+                :key="item.id"
+                class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0"
+              >
+                <span class="font-medium">{{ item.quantity }}x {{ item.product?.name || 'Produs' }}</span>
+                <span class="text-muted-foreground">{{ (item.quantity * item.priceSnapshot).toFixed(2) }} RON</span>
+              </div>
+            </div>
+            
+            <div v-if="newOrderPopupOrder.notes" class="mt-3 p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded text-sm">
+              <strong>Notă:</strong> {{ newOrderPopupOrder.notes }}
+            </div>
+          </div>
+          
+          <div class="flex gap-3">
+            <Button 
+              @click="closeNewOrderPopup()" 
+              variant="outline" 
+              class="flex-1"
+            >
+              <X class="w-4 h-4 mr-2" />
+              Închide
+            </Button>
+            <Button 
+              @click="handleReviewFromPopup()" 
+              class="flex-1 bg-purple-600 hover:bg-purple-700"
+            >
+              <Eye class="w-4 h-4 mr-2" />
+              Revizuiește
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

@@ -9,6 +9,7 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
   const users = ref<any[]>([])
   const stats = ref<any>(null)
   const loading = ref(false)
+  const isSaving = ref(false)
 
   async function fetchRestaurants() {
     loading.value = true
@@ -81,6 +82,7 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
   }
 
   async function createUser(userData: any) {
+    isSaving.value = true
     try {
       const response = await axios.post(`${API_URL}/superadmin/users`, userData)
       if (response.data.success) {
@@ -90,10 +92,13 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
     } catch (error) {
       console.error('Failed to create user', error)
       throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
   async function updateUser(id: string, userData: any) {
+    isSaving.value = true
     try {
       const response = await axios.put(`${API_URL}/superadmin/users/${id}`, userData)
       if (response.data.success) {
@@ -103,10 +108,13 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
     } catch (error) {
       console.error('Failed to update user', error)
       throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
   async function deleteUser(id: string) {
+    isSaving.value = true
     try {
       const response = await axios.delete(`${API_URL}/superadmin/users/${id}`)
       if (response.data.success) {
@@ -116,6 +124,8 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
     } catch (error) {
       console.error('Failed to delete user', error)
       throw error
+    } finally {
+      isSaving.value = false
     }
   }
 
@@ -137,6 +147,7 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
     users,
     stats,
     loading,
+    isSaving,
     fetchRestaurants,
     fetchRestaurant,
     createRestaurant,

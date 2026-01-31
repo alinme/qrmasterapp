@@ -15,7 +15,7 @@ router.get('/staff', authenticateToken, requireRestaurantAdmin, async (req: Auth
       where: {
         restaurantId: req.user.restaurantId,
         role: {
-          in: ['STAFF', 'KITCHEN', 'RESTAURANT_ADMIN']
+          in: ['STAFF', 'KITCHEN'] // Only STAFF and KITCHEN, exclude RESTAURANT_ADMIN
         }
       },
       select: {

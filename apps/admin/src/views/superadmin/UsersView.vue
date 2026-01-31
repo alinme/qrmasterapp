@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -138,16 +139,36 @@ async function handleDelete(id: string) {
               </Select>
             </div>
             <div class="flex justify-end gap-2">
-              <Button variant="outline" @click="dialogOpen = false">Cancel</Button>
-              <Button @click="handleSubmit">Save</Button>
+              <Button variant="outline" @click="dialogOpen = false" :disabled="superAdminStore.isSaving">Cancel</Button>
+              <Button @click="handleSubmit" :loading="superAdminStore.isSaving" :disabled="superAdminStore.isSaving">
+                {{ superAdminStore.isSaving ? 'Saving...' : 'Save' }}
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </div>
 
-    <div v-if="superAdminStore.loading" class="text-center py-8">
-      <p class="text-muted-foreground">Loading users...</p>
+    <!-- Skeleton Loader -->
+    <div v-if="superAdminStore.loading" class="space-y-4">
+      <Card v-for="i in 3" :key="i" class="hover:shadow-md transition-shadow">
+        <CardContent class="p-6">
+          <div class="flex justify-between items-start">
+            <div class="space-y-2 flex-1">
+              <div class="flex items-center gap-2">
+                <Skeleton class="h-5 w-48" />
+                <Skeleton class="h-4 w-20" />
+              </div>
+              <Skeleton class="h-4 w-32" />
+              <Skeleton class="h-3 w-40" />
+            </div>
+            <div class="flex gap-2">
+              <Skeleton class="h-9 w-9" />
+              <Skeleton class="h-9 w-9" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
 
     <div v-else-if="superAdminStore.users.length === 0" class="text-center py-8 text-muted-foreground">

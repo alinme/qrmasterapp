@@ -65,7 +65,13 @@ router.post('/restaurants', authenticateToken, requireSuperAdmin, async (req: Au
         contractEnd: contractEnd ? new Date(contractEnd) : null
       },
       include: {
-        users: true,
+        users: {
+          where: {
+            role: {
+              not: 'SUPER_ADMIN' // Filter out super admins
+            }
+          }
+        },
         _count: {
           select: {
             orders: true,
@@ -111,7 +117,13 @@ router.put('/restaurants/:id', authenticateToken, requireSuperAdmin, async (req:
       where: { id },
       data: updateData,
       include: {
-        users: true,
+        users: {
+          where: {
+            role: {
+              not: 'SUPER_ADMIN' // Filter out super admins
+            }
+          }
+        },
         _count: {
           select: {
             orders: true,
@@ -163,7 +175,13 @@ router.post('/restaurants/:id/logo', authenticateToken, requireSuperAdmin, uploa
       where: { id },
       data: { logoUrl: uploadResult.url },
       include: {
-        users: true,
+        users: {
+          where: {
+            role: {
+              not: 'SUPER_ADMIN' // Filter out super admins
+            }
+          }
+        },
         _count: {
           select: {
             orders: true,
@@ -189,6 +207,11 @@ router.get('/restaurants/:id', authenticateToken, requireSuperAdmin, async (req:
       where: { id },
       include: {
         users: {
+          where: {
+            role: {
+              not: 'SUPER_ADMIN' // Filter out super admins
+            }
+          },
           select: {
             id: true,
             email: true,
@@ -244,6 +267,11 @@ router.get('/restaurants/:id', authenticateToken, requireSuperAdmin, async (req:
 router.get('/users', authenticateToken, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const users = await prisma.user.findMany({
+      where: {
+        role: {
+          not: 'SUPER_ADMIN' // Filter out other super admins
+        }
+      },
       include: {
         restaurant: {
           select: {

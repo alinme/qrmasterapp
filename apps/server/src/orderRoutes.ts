@@ -72,6 +72,7 @@ router.get('/:orderId', authenticateToken, async (req: AuthRequest, res: Respons
 });
 
 // Server review and send to kitchen (Admin - Server role)
+// When server sends to kitchen, order goes to PENDING status (waiting for chef to claim)
 router.post('/:orderId/review', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -100,9 +101,10 @@ router.post('/:orderId/review', authenticateToken, async (req: AuthRequest, res:
       serverNotes: serverNotes || null
     };
 
-    // If sending to kitchen, change status to PREPARING
+    // If sending to kitchen, change status to PENDING (not PREPARING)
+    // Chef will need to claim it first, then it becomes PREPARING
     if (sendToKitchen) {
-      updateData.status = 'PREPARING';
+      updateData.status = 'PENDING';
     }
 
     const updatedOrder = await prisma.order.update({
@@ -134,6 +136,63 @@ router.post('/:orderId/review', authenticateToken, async (req: AuthRequest, res:
   }
 });
 
+// Claim order by chef (changes status from PENDING to PREPARING)
+router.post('/:orderId/claim', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const { orderId } = req.params;
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { table: true }
+    });
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    if (order.restaurantId !== req.user.restaurantId) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    // Only allow claiming orders in PENDING status
+    if (order.status !== 'PENDING') {
+      return res.status(400).json({ success: false, error: 'Order is not in pending status' });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { 
+        status: 'PREPARING',
+        claimedAt: new Date() // Track when chef claimed the order
+      },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        },
+        table: true
+      }
+    });
+
+    // Emit Socket.IO event for real-time updates
+    const io = getSocket();
+    io.to(`restaurant_${updatedOrder.restaurantId}`).emit('order_updated', updatedOrder);
+    io.to(`table_${updatedOrder.tableId}`).emit('order_status_updated', {
+      orderId: updatedOrder.id,
+      status: updatedOrder.status,
+      order: updatedOrder
+    });
+    
+    res.json({ success: true, data: updatedOrder });
+  } catch (error) {
+    console.error('Claim order error:', error);
+    res.status(500).json({ success: false, error: 'Failed to claim order' });
+  }
+});
+
 // Update order status (Admin)
 router.put('/:orderId/status', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
@@ -142,7 +201,7 @@ router.put('/:orderId/status', authenticateToken, async (req: AuthRequest, res: 
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ['RECEIVED', 'SERVER_REVIEW', 'PREPARING', 'READY', 'SERVED', 'CANCELLED'];
+    const validStatuses = ['RECEIVED', 'SERVER_REVIEW', 'PENDING', 'PREPARING', 'READY', 'SERVED', 'CANCELLED'];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({ success: false, error: 'Invalid status' });
     }

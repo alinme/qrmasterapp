@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -113,16 +114,35 @@ async function handleDelete(id: string) {
               </Select>
             </div>
             <div class="flex justify-end gap-2">
-              <Button variant="outline" @click="dialogOpen = false">Cancel</Button>
-              <Button @click="handleSubmit">Save</Button>
+              <Button variant="outline" @click="dialogOpen = false" :disabled="staffStore.isSaving">Cancel</Button>
+              <Button @click="handleSubmit" :loading="staffStore.isSaving" :disabled="staffStore.isSaving">
+                {{ staffStore.isSaving ? 'Saving...' : 'Save' }}
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </div>
 
-    <div v-if="staffStore.loading" class="text-center py-8">
-      <p class="text-muted-foreground">Loading staff...</p>
+    <!-- Skeleton Loader -->
+    <div v-if="staffStore.loading" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <Card v-for="i in 3" :key="i" class="hover:shadow-md transition-shadow">
+        <CardHeader>
+          <div class="flex justify-between items-start">
+            <div class="space-y-2 flex-1">
+              <Skeleton class="h-6 w-48" />
+              <Skeleton class="h-4 w-20" />
+            </div>
+            <div class="flex gap-1">
+              <Skeleton class="h-9 w-9" />
+              <Skeleton class="h-9 w-9" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Skeleton class="h-3 w-32" />
+        </CardContent>
+      </Card>
     </div>
 
     <div v-else-if="staffStore.staff.length === 0" class="text-center py-8 text-muted-foreground">

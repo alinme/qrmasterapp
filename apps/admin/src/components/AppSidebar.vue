@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { RouterLink, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useOrdersStore } from '@/stores/orders'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { 
   LayoutDashboard, 
@@ -14,19 +16,31 @@ import {
   Users,
   Receipt
 } from 'lucide-vue-next'
+import { computed, onMounted } from 'vue'
 
 const auth = useAuthStore()
+const ordersStore = useOrdersStore()
 const route = useRoute()
+
+const pendingReviewOrdersCount = computed(() => {
+  return ordersStore.orders.filter(o => o.status === 'SERVER_REVIEW').length
+})
 
 const navItems = [
   { name: 'Overview', path: '/', icon: LayoutDashboard },
   { name: 'Menu', path: '/menu', icon: Menu },
   { name: 'Orders', path: '/orders', icon: Table },
   { name: 'Kitchen', path: '/kitchen', icon: ChefHat, external: true },
-  { name: 'Server', path: '/server', icon: Receipt },
+  { name: 'Server', path: '/server', icon: Receipt, badge: pendingReviewOrdersCount },
   { name: 'Tables', path: '/tables', icon: QrCode },
   { name: 'Staff', path: '/staff', icon: Users }
 ]
+
+onMounted(() => {
+  // Connect to socket and fetch orders for badge
+  ordersStore.connectSocket()
+  ordersStore.fetchOrders()
+})
 </script>
 
 <template>
@@ -51,7 +65,14 @@ const navItems = [
           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
       >
         <component :is="item.icon" class="w-4 h-4" />
-        {{ item.name }}
+        <span class="flex-1">{{ item.name }}</span>
+        <Badge 
+          v-if="item.badge && item.badge.value > 0" 
+          variant="destructive"
+          class="ml-auto text-xs"
+        >
+          {{ item.badge.value }}
+        </Badge>
       </RouterLink>
     </nav>
 
