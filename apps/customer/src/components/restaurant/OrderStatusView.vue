@@ -106,7 +106,21 @@ function orderMore() {
     slug = route.params.slug as string
   }
   
+  // If still no slug, try to get from stored session
+  if (!slug) {
+    try {
+      const storedSession = localStorage.getItem('table_session')
+      if (storedSession) {
+        const session = JSON.parse(storedSession)
+        slug = session.restaurantSlug
+      }
+    } catch (e) {
+      console.error('Failed to parse stored session', e)
+    }
+  }
+  
   if (slug) {
+    // Navigate to menu tab by changing active tab via router
     router.push({ name: 'restaurant-menu', params: { slug } })
   } else {
     // Last resort - redirect to scan page

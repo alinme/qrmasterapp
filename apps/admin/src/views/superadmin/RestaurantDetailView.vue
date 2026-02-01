@@ -275,10 +275,13 @@ async function handleLogoUpload(event: Event) {
                       @change="handleLogoUpload"
                       :disabled="uploadingLogo"
                     />
-                    <Button type="button" variant="outline" size="sm" :disabled="uploadingLogo">
+                    <div
+                      class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                      :class="{ 'opacity-50 pointer-events-none': uploadingLogo }"
+                    >
                       <Upload class="w-4 h-4 mr-2" />
                       {{ uploadingLogo ? 'Uploading...' : 'Upload Logo' }}
-                    </Button>
+                    </div>
                   </label>
                   <p class="text-xs text-muted-foreground">JPG, PNG, or WebP (max 50MB)</p>
                 </div>

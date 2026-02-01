@@ -119,6 +119,7 @@ let billRequestsInterval: any = null
 let handleNewOrder: ((order: any) => void) | null = null
 let handleOrderUpdated: (() => void) | null = null
 let handleBillRequested: ((data: any) => void) | null = null
+let handleWaiterCalled: ((data: any) => void) | null = null
 let handleTableStatusChanged: (() => void) | null = null
 let handleConnect: (() => void) | null = null
 let listenersSetup = false
@@ -129,11 +130,13 @@ function teardownSocketListeners() {
   if (handleNewOrder) socket.off('new_order', handleNewOrder)
   if (handleOrderUpdated) socket.off('order_updated', handleOrderUpdated)
   if (handleBillRequested) socket.off('bill_requested', handleBillRequested)
+  if (handleWaiterCalled) socket.off('waiter_called', handleWaiterCalled)
   if (handleTableStatusChanged) socket.off('table_status_changed', handleTableStatusChanged)
   if (handleConnect) socket.off('connect', handleConnect)
   handleNewOrder = null
   handleOrderUpdated = null
   handleBillRequested = null
+  handleWaiterCalled = null
   handleTableStatusChanged = null
   handleConnect = null
   listenersSetup = false
@@ -191,6 +194,15 @@ function setupSocketListeners() {
     }
   }
   socket.on('bill_requested', handleBillRequested)
+
+  handleWaiterCalled = (data: any) => {
+    toast.info(data.message || 'Chelner chemat', {
+      description: `Masă: ${data.tableName || 'N/A'}`,
+      duration: 5000
+    })
+    playNotificationSound()
+  }
+  socket.on('waiter_called', handleWaiterCalled)
 
   handleTableStatusChanged = () => { billsStore.fetchTables() }
   socket.on('table_status_changed', handleTableStatusChanged)
@@ -653,17 +665,16 @@ function processBillRequest(request: any) {
 function openPaymentDialog(resetTipValues: boolean = true) {
   if (!selectedTable.value) return
   
-  // Select all unpaid orders by default
-  const unpaidOrders = billsStore.tableBill?.orders?.filter((o: any) => {
-    const paid = o.payments?.reduce((sum: number, p: any) => sum + p.total, 0) || 0
-    return paid < o.total
-  }) || []
-  
-  selectedOrders.value = unpaidOrders.map((o: any) => o.id)
   paymentDialogOpen.value = true
-  // BUGFIX #9: Only reset tip values when explicitly requested
-  // When coming from processBillRequest, we want to keep the values from the request
+  
+  // Only select all unpaid orders when resetTipValues is true (i.e., not coming from processBillRequest)
+  // When coming from processBillRequest, selectedOrders is already set from the bill request
   if (resetTipValues) {
+    const unpaidOrders = billsStore.tableBill?.orders?.filter((o: any) => {
+      const paid = o.payments?.reduce((sum: number, p: any) => sum + p.total, 0) || 0
+      return paid < o.total
+    }) || []
+    selectedOrders.value = unpaidOrders.map((o: any) => o.id)
     tipType.value = null
     tipValue.value = 0
     customTipAmount.value = 0
@@ -770,13 +781,16 @@ function handleTipSelection(value: any) {
     // BUGFIX #11: Select AMOUNT type for fixed tip
     tipType.value = 'AMOUNT'
     tipValue.value = 0
-    customTipAmount.value = 0
+    // NU resetăm customTipAmount - lăsăm valoarea anterioară sau 0 dacă nu există
+    // Acesta este fixul pentru problema: bacșișul custom era resetat la selecție
   } else if (!value || value === 'custom') {
     tipType.value = 'PERCENTAGE'
     tipValue.value = 0
+    customTipAmount.value = 0
   } else {
     tipType.value = 'PERCENTAGE'
     tipValue.value = Number(value)
+    customTipAmount.value = 0
   }
 }
 
