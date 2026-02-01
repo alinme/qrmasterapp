@@ -17,4 +17,5 @@ export const requireRole = (...allowedRoles: string[]) => {
 
 export const requireSuperAdmin = requireRole('SUPER_ADMIN');
 export const requireRestaurantAdmin = requireRole('RESTAURANT_ADMIN', 'SUPER_ADMIN');
-export const requireStaffOrAbove = requireRole('RESTAURANT_ADMIN', 'STAFF', 'KITCHEN', 'SUPER_ADMIN');
+export const requireStaffOrAbove = requireRole('RESTAURANT_ADMIN', 'STAFF', 'KITCHEN', 'SERVER', 'SUPER_ADMIN');
+export const requireServer = requireRole('SERVER', 'RESTAURANT_ADMIN', 'SUPER_ADMIN');

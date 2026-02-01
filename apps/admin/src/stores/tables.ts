@@ -6,7 +6,60 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 export const useTablesStore = defineStore('tables', () => {
   const tables = ref<any[]>([])
+  const categories = ref<any[]>([])
   const loading = ref(false)
+
+  async function fetchCategories() {
+    try {
+      const response = await axios.get(`${API_URL}/tables/categories`)
+      if (response.data.success) {
+        categories.value = response.data.data
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories', error)
+      throw error
+    }
+  }
+
+  async function createCategory(name: string, description?: string, sortOrder?: number) {
+    try {
+      const response = await axios.post(`${API_URL}/tables/categories`, { name, description, sortOrder })
+      if (response.data.success) {
+        await fetchCategories()
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to create category', error)
+      throw error
+    }
+  }
+
+  async function updateCategory(categoryId: string, name: string, description?: string, sortOrder?: number) {
+    try {
+      const response = await axios.put(`${API_URL}/tables/categories/${categoryId}`, { name, description, sortOrder })
+      if (response.data.success) {
+        await fetchCategories()
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to update category', error)
+      throw error
+    }
+  }
+
+  async function deleteCategory(categoryId: string) {
+    try {
+      const response = await axios.delete(`${API_URL}/tables/categories/${categoryId}`)
+      if (response.data.success) {
+        await fetchCategories()
+        return true
+      }
+    } catch (error) {
+      console.error('Failed to delete category', error)
+      throw error
+    }
+  }
 
   async function fetchTables() {
     loading.value = true
@@ -24,9 +77,9 @@ export const useTablesStore = defineStore('tables', () => {
     }
   }
 
-  async function createTable(name: string, chairs?: number, form?: string) {
+  async function createTable(name: string, chairs?: number, form?: string, categoryId?: string) {
     try {
-      const response = await axios.post(`${API_URL}/tables`, { name, chairs, form })
+      const response = await axios.post(`${API_URL}/tables`, { name, chairs, form, categoryId })
       if (response.data.success) {
         await fetchTables()
         return response.data.data
@@ -37,9 +90,9 @@ export const useTablesStore = defineStore('tables', () => {
     }
   }
 
-  async function updateTable(tableId: string, name: string, chairs?: number, form?: string) {
+  async function updateTable(tableId: string, name: string, chairs?: number, form?: string, categoryId?: string | null) {
     try {
-      const response = await axios.put(`${API_URL}/tables/${tableId}`, { name, chairs, form })
+      const response = await axios.put(`${API_URL}/tables/${tableId}`, { name, chairs, form, categoryId })
       if (response.data.success) {
         await fetchTables()
         return response.data.data
@@ -110,8 +163,13 @@ export const useTablesStore = defineStore('tables', () => {
 
   return {
     tables,
+    categories,
     loading,
     fetchTables,
+    fetchCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
     createTable,
     updateTable,
     deleteTable,

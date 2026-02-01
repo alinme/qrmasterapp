@@ -577,9 +577,41 @@ const tablesWithBills = computed(() => {
       isOwnedByMe,
       isFree,
       isOwnedByOther,
-      serverEmail: table.server?.email || null
+      serverEmail: table.server?.email || null,
+      categoryId: table.category?.id || null,
+      categoryName: table.category?.name || 'Uncategorized'
     }
   })
+})
+
+// Group tables by category
+const tablesByCategory = computed(() => {
+  const grouped: Record<string, { name: string; sortOrder: number; tables: any[] }> = {}
+  
+  tablesWithBills.value.forEach(table => {
+    const categoryId = table.categoryId || 'uncategorized'
+    const categoryName = table.categoryName || 'Uncategorized'
+    const sortOrder = table.category?.sortOrder ?? 999
+    
+    if (!grouped[categoryId]) {
+      grouped[categoryId] = {
+        name: categoryName,
+        sortOrder: sortOrder,
+        tables: []
+      }
+    }
+    grouped[categoryId].tables.push(table)
+  })
+  
+  // Convert to array and sort by sortOrder
+  return Object.entries(grouped)
+    .map(([id, data]) => ({
+      id,
+      name: data.name,
+      sortOrder: data.sortOrder,
+      tables: data.tables
+    }))
+    .sort((a, b) => a.sortOrder - b.sortOrder)
 })
 
 function getTableStatusColor(status: string) {
@@ -1042,13 +1074,27 @@ async function handleViewBillRequest(request: any) {
     </div>
 
     <div v-else-if="tablesWithBills.length === 0" class="py-8 text-center text-muted-foreground">
-      <p>No tables with active orders</p>
+      <p>No tables available</p>
     </div>
 
-    <div v-else class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-        <Card
-        v-for="table in tablesWithBills"
-        :key="table.id"
+    <!-- Tables Grouped by Category -->
+    <div v-else class="space-y-8">
+      <div v-for="category in tablesByCategory" :key="category.id">
+        <!-- Category Header -->
+        <div class="mb-4">
+          <h3 class="text-xl font-bold text-foreground border-b-2 border-primary pb-2">
+            {{ category.name }}
+            <span class="text-sm font-normal text-muted-foreground ml-2">
+              ({{ category.tables.length }} {{ category.tables.length === 1 ? 'table' : 'tables' }})
+            </span>
+          </h3>
+        </div>
+        
+        <!-- Tables Grid -->
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <Card
+            v-for="table in category.tables"
+            :key="table.id"
         class="overflow-visible relative border-2 transition-shadow cursor-pointer hover:shadow-lg"
           :class="[
           getTableStatusColor(table.status),
@@ -1274,6 +1320,8 @@ async function handleViewBillRequest(request: any) {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
 
     <!-- Bill Details Dialog -->

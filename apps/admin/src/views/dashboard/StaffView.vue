@@ -8,10 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useStaffStore } from '@/stores/staff'
-import { Plus, Trash2, Edit } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth'
+import { Plus, Trash2, Edit, UserCircle } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
+import { useRouter } from 'vue-router'
 
 const staffStore = useStaffStore()
+const authStore = useAuthStore()
+const router = useRouter()
 const dialogOpen = ref(false)
 const editingStaff = ref<any>(null)
 const formData = ref({
@@ -72,6 +76,18 @@ async function handleDelete(id: string) {
     toast.error(error.response?.data?.error || 'Failed to delete staff member')
   }
 }
+
+async function handleImpersonate(userId: string, userEmail: string) {
+  if (!confirm(`Impersonate user ${userEmail}?`)) return
+  
+  try {
+    await authStore.impersonate(userId)
+    toast.success(`Now impersonating ${userEmail}`)
+    router.push('/')
+  } catch (error: any) {
+    toast.error(error.response?.data?.error || 'Failed to impersonate user')
+  }
+}
 </script>
 
 <template>
@@ -108,8 +124,9 @@ async function handleDelete(id: string) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STAFF">Staff</SelectItem>
+                  <SelectItem value="SERVER">Server (Waiter)</SelectItem>
                   <SelectItem value="KITCHEN">Kitchen</SelectItem>
+                  <SelectItem value="STAFF">Staff</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -165,6 +182,14 @@ async function handleDelete(id: string) {
               </p>
             </div>
             <div class="flex gap-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                @click="handleImpersonate(staff.id, staff.email)"
+                title="Impersonate this user"
+              >
+                <UserCircle class="w-4 h-4" />
+              </Button>
               <Button variant="ghost" size="sm" @click="openDialog(staff)">
                 <Edit class="w-4 h-4" />
               </Button>

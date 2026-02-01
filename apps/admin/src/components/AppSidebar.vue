@@ -26,15 +26,35 @@ const pendingReviewOrdersCount = computed(() => {
   return ordersStore.orders.filter(o => o.status === 'SERVER_REVIEW').length
 })
 
-const navItems = [
-  { name: 'Overview', path: '/', icon: LayoutDashboard },
-  { name: 'Menu', path: '/menu', icon: Menu },
-  { name: 'Orders', path: '/orders', icon: Table },
-  { name: 'Kitchen', path: '/kitchen', icon: ChefHat, external: true },
-  { name: 'Server', path: '/server', icon: Receipt, badge: pendingReviewOrdersCount },
-  { name: 'Tables', path: '/tables', icon: QrCode },
-  { name: 'Staff', path: '/staff', icon: Users }
+// Role-based visibility
+const userRole = computed(() => auth.user?.role || '')
+
+const allNavItems = [
+  { name: 'Overview', path: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'SERVER', 'KITCHEN', 'STAFF'] },
+  { name: 'Menu', path: '/menu', icon: Menu, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
+  { name: 'Orders', path: '/orders', icon: Table, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'KITCHEN'] },
+  { name: 'Kitchen', path: '/kitchen', icon: ChefHat, external: true, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'KITCHEN'] },
+  { name: 'Server', path: '/server', icon: Receipt, badge: pendingReviewOrdersCount, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'SERVER'] },
+  { name: 'Tables', path: '/tables', icon: QrCode, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
+  { name: 'Staff', path: '/staff', icon: Users, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] }
 ]
+
+// Filter nav items based on user role
+const navItems = computed(() => {
+  return allNavItems.filter(item => item.roles.includes(userRole.value))
+})
+
+// Get display role name
+const displayRole = computed(() => {
+  const roleMap: Record<string, string> = {
+    'SUPER_ADMIN': 'Super Admin',
+    'RESTAURANT_ADMIN': 'Restaurant Admin',
+    'SERVER': 'Waiter',
+    'KITCHEN': 'Kitchen',
+    'STAFF': 'Staff'
+  }
+  return roleMap[userRole.value] || userRole.value
+})
 
 onMounted(() => {
   // Connect to socket and fetch orders for badge
@@ -83,7 +103,7 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium truncate">{{ auth.user?.email || 'User' }}</p>
-          <p class="text-xs truncate text-muted-foreground">Restaurant Admin</p>
+          <p class="text-xs truncate text-muted-foreground">{{ displayRole }}</p>
         </div>
       </div>
       <Separator class="my-2" />

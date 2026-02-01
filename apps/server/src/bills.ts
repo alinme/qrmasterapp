@@ -47,6 +47,7 @@ router.get('/tables', authenticateToken, requireStaffOrAbove, async (req: AuthRe
     const tables = await prisma.table.findMany({
       where: { restaurantId: req.user.restaurantId },
       include: {
+        category: true,
         server: {
           select: {
             id: true,

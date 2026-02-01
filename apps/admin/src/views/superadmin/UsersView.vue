@@ -215,7 +215,7 @@ async function handleImpersonate(userId: string, userEmail: string) {
             </div>
             <div class="flex gap-2">
               <Button 
-                v-if="user.role === 'SERVER'" 
+                v-if="['SERVER', 'KITCHEN', 'STAFF', 'RESTAURANT_ADMIN'].includes(user.role) && user.role !== authStore.user?.role" 
                 variant="outline" 
                 size="sm" 
                 @click="handleImpersonate(user.id, user.email)"

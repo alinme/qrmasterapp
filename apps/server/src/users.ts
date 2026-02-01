@@ -15,7 +15,7 @@ router.get('/staff', authenticateToken, requireRestaurantAdmin, async (req: Auth
       where: {
         restaurantId: req.user.restaurantId,
         role: {
-          in: ['STAFF', 'KITCHEN'] // Only STAFF and KITCHEN, exclude RESTAURANT_ADMIN
+          in: ['STAFF', 'KITCHEN', 'SERVER'] // Include SERVER (waiter) role
         }
       },
       select: {
@@ -46,9 +46,9 @@ router.post('/staff', authenticateToken, requireRestaurantAdmin, async (req: Aut
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
-    // Only allow creating STAFF or KITCHEN roles
-    if (!['STAFF', 'KITCHEN'].includes(role)) {
-      return res.status(400).json({ success: false, error: 'Invalid role. Only STAFF and KITCHEN allowed' });
+    // Only allow creating STAFF, KITCHEN, or SERVER roles
+    if (!['STAFF', 'KITCHEN', 'SERVER'].includes(role)) {
+      return res.status(400).json({ success: false, error: 'Invalid role. Only STAFF, KITCHEN, and SERVER allowed' });
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -99,7 +99,7 @@ router.put('/staff/:id', authenticateToken, requireRestaurantAdmin, async (req: 
     }
 
     // Prevent changing role to RESTAURANT_ADMIN or SUPER_ADMIN
-    if (role && !['STAFF', 'KITCHEN'].includes(role)) {
+    if (role && !['STAFF', 'KITCHEN', 'SERVER'].includes(role)) {
       return res.status(400).json({ success: false, error: 'Invalid role' });
     }
 
