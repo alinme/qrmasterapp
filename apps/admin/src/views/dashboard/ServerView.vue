@@ -59,6 +59,79 @@ function handleReviewFromPopup() {
   closeNewOrderPopup()
 }
 
+// NOTIFICATION POPUP - Shows for ALL notifications regardless of location
+const notificationPopupOpen = ref(false)
+const notificationPopupData = ref<{
+  type: 'order' | 'bill' | 'waiter',
+  title: string,
+  message: string,
+  tableName: string,
+  data?: any
+} | null>(null)
+const notificationSoundPlayed = ref(false)
+
+function showNotificationPopup(type: 'order' | 'bill' | 'waiter', data: any) {
+  let title = ''
+  let message = ''
+  let tableName = data.tableName || data.table?.name || 'N/A'
+  
+  switch (type) {
+    case 'order':
+      title = 'Comandă Nouă!'
+      message = `Masă ${tableName} - Total: ${data.total?.toFixed(2) || 0} RON`
+      break
+    case 'bill':
+      title = 'Cerere Notă de Plată!'
+      message = `Masă ${tableName} - Total: ${data.totalWithTip?.toFixed(2) || 0} RON (${data.paymentType === 'CASH' ? 'Numerar' : 'POS'})`
+      break
+    case 'waiter':
+      title = 'Chelner Chemat!'
+      message = data.message || `Clientul de la masă ${tableName} te cheamă!`
+      break
+  }
+  
+  notificationPopupData.value = { type, title, message, tableName, data }
+  notificationPopupOpen.value = true
+  notificationSoundPlayed.value = false
+  playNotificationSound()
+}
+
+function closeNotificationPopup() {
+  notificationPopupOpen.value = false
+  notificationPopupData.value = null
+}
+
+function handleNotificationAction() {
+  if (!notificationPopupData.value) return
+  
+  const { type, data } = notificationPopupData.value
+  
+  switch (type) {
+    case 'order':
+      // Open review dialog for the order
+      if (data) {
+        openReviewDialog(data)
+      }
+      break
+    case 'bill':
+      // Open bill dialog for the table
+      if (data?.tableId) {
+        const table = billsStore.tables.find((t: any) => t.id === data.tableId)
+        if (table) openBillDialog(table)
+      }
+      break
+    case 'waiter':
+      // Could navigate to table or just close
+      if (data?.tableId) {
+        const table = billsStore.tables.find((t: any) => t.id === data.tableId)
+        if (table) openBillDialog(table)
+      }
+      break
+  }
+  
+  closeNotificationPopup()
+}
+
 // Base tip options
 const baseTipOptions = [
   { label: '0%', value: 0 },
@@ -150,7 +223,10 @@ function setupSocketListeners() {
   handleNewOrder = (order: any) => {
     const isMyTable = order.tableServerId === null || order.tableServerId === authStore.user?.id
     if (isMyTable && order.status === 'SERVER_REVIEW') {
-      // Show persistent popup
+      // Show BIG notification popup regardless of location
+      showNotificationPopup('order', order)
+      
+      // Also show the review popup for immediate action
       showNewOrderPopup(order)
       
       // Also show toast
@@ -158,9 +234,6 @@ function setupSocketListeners() {
         description: `Masă: ${order.table?.name || 'N/A'}, Total: ${order.total.toFixed(2)} RON`,
         duration: 5000
       })
-      
-      // Play sound
-      playNotificationSound()
       
       if (order.tableId) {
         flashingReviewTableIds.value.add(order.tableId)
@@ -176,6 +249,8 @@ function setupSocketListeners() {
 
   handleBillRequested = async (data: any) => {
     await loadBillRequests()
+    // Show BIG notification popup regardless of location
+    showNotificationPopup('bill', data)
     toast.info(data.message || 'Cerere de notă de plată', {
       description: `Masă: ${data.tableName}, Total: ${data.totalWithTip?.toFixed(2)} RON, Tip: ${data.tipAmount?.toFixed(2) || 0} RON, Metodă: ${data.paymentType === 'CASH' ? 'Numerar' : 'POS'}`,
       duration: Infinity,
@@ -187,7 +262,6 @@ function setupSocketListeners() {
         }
       }
     })
-    playNotificationSound()
     billsStore.fetchTables()
     if (selectedTable.value?.id === data.tableId) {
       billsStore.fetchTableBill(data.tableId)
@@ -196,11 +270,12 @@ function setupSocketListeners() {
   socket.on('bill_requested', handleBillRequested)
 
   handleWaiterCalled = (data: any) => {
+    // Show BIG notification popup regardless of location
+    showNotificationPopup('waiter', data)
     toast.info(data.message || 'Chelner chemat', {
       description: `Masă: ${data.tableName || 'N/A'}`,
       duration: 5000
     })
-    playNotificationSound()
   }
   socket.on('waiter_called', handleWaiterCalled)
 
@@ -1563,6 +1638,55 @@ async function handleViewBillRequest(request: any) {
             >
               <Eye class="w-4 h-4 mr-2" />
               Revizuiește
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <!-- BIG NOTIFICATION POPUP - Shows for ALL notifications regardless of location -->
+    <Dialog :open="notificationPopupOpen" @update:open="(val) => { if (!val) closeNotificationPopup() }">
+      <DialogContent class="max-w-lg border-8 border-red-500 bg-red-50 dark:bg-red-900/20 animate-pulse">
+        <DialogHeader>
+          <DialogTitle class="flex items-center justify-center gap-3 text-3xl font-bold text-red-700 dark:text-red-300">
+            <Bell class="w-10 h-10 animate-bounce" />
+            {{ notificationPopupData?.title }}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div v-if="notificationPopupData" class="space-y-6 text-center">
+          <div class="p-6 bg-white dark:bg-gray-800 rounded-xl border-4 border-red-300 shadow-2xl">
+            <div class="mb-4">
+              <span class="text-6xl">
+                {{ notificationPopupData.type === 'order' ? '📋' : notificationPopupData.type === 'bill' ? '💰' : '🔔' }}
+              </span>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">{{ notificationPopupData.tableName }}</h3>
+            <p class="text-xl text-gray-700 dark:text-gray-300">{{ notificationPopupData.message }}</p>
+          </div>
+          
+          <div class="flex gap-4">
+            <Button 
+              @click="closeNotificationPopup()" 
+              variant="outline" 
+              size="lg"
+              class="flex-1 text-lg"
+            >
+              <X class="w-5 h-5 mr-2" />
+              Închide
+            </Button>
+            <Button 
+              @click="handleNotificationAction()" 
+              size="lg"
+              :class="{
+                'flex-1 text-lg': true,
+                'bg-purple-600 hover:bg-purple-700': notificationPopupData?.type === 'order',
+                'bg-green-600 hover:bg-green-700': notificationPopupData?.type === 'bill',
+                'bg-blue-600 hover:bg-blue-700': notificationPopupData?.type === 'waiter'
+              }"
+            >
+              <Eye class="w-5 h-5 mr-2" />
+              {{ notificationPopupData?.type === 'order' ? 'Revizuiește' : notificationPopupData?.type === 'bill' ? 'Procesează' : 'Vezi Masă' }}
             </Button>
           </div>
         </div>

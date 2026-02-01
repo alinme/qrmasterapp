@@ -374,9 +374,9 @@ router.patch('/:tableId/assign', authenticateToken, async (req: AuthRequest, res
     
     const { tableId } = req.params;
     
-    // Check if user has SERVER role or above
-    if (!['SERVER', 'RESTAURANT_ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
-      return res.status(403).json({ success: false, error: 'Only servers can take ownership of tables' });
+    // Check if user has server role or above (STAFF, SERVER, KITCHEN, ADMIN)
+    if (!['STAFF', 'SERVER', 'KITCHEN', 'RESTAURANT_ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, error: 'Only staff can take ownership of tables' });
     }
     
     // Verify table exists and belongs to same restaurant
@@ -437,9 +437,9 @@ router.patch('/:tableId/release', authenticateToken, async (req: AuthRequest, re
     
     const { tableId } = req.params;
     
-    // Check if user has SERVER role or above
-    if (!['SERVER', 'RESTAURANT_ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
-      return res.status(403).json({ success: false, error: 'Only servers can release tables' });
+    // Check if user has staff role or above
+    if (!['STAFF', 'SERVER', 'KITCHEN', 'RESTAURANT_ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, error: 'Only staff can release tables' });
     }
     
     // Verify table exists, belongs to same restaurant, and is owned by current user (or admin)
