@@ -363,4 +363,78 @@ router.post('/payments', authenticateToken, requireStaffOrAbove, async (req: Aut
   }
 });
 
+// Get server/waiter earnings stats (today, yesterday, comparison)
+router.get('/server-stats', authenticateToken, requireStaffOrAbove, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const serverId = req.user.userId;
+
+    // Helper to get start/end of a date in local timezone
+    function getDateBounds(offsetDays: number) {
+      const d = new Date();
+      d.setDate(d.getDate() - offsetDays);
+      const start = new Date(d);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(d);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+
+    const today = getDateBounds(0);
+    const yesterday = getDateBounds(1);
+
+    const [todayPayments, yesterdayPayments] = await Promise.all([
+      prisma.payment.findMany({
+        where: {
+          processedBy: serverId,
+          createdAt: { gte: today.start, lte: today.end }
+        }
+      }),
+      prisma.payment.findMany({
+        where: {
+          processedBy: serverId,
+          createdAt: { gte: yesterday.start, lte: yesterday.end }
+        }
+      })
+    ]);
+
+    const todayGross = todayPayments.reduce((sum, p) => sum + p.amount, 0);
+    const todayTips = todayPayments.reduce((sum, p) => sum + (p.tipAmount || 0), 0);
+    const yesterdayGross = yesterdayPayments.reduce((sum, p) => sum + p.amount, 0);
+    const yesterdayTips = yesterdayPayments.reduce((sum, p) => sum + (p.tipAmount || 0), 0);
+
+    const grossDelta = todayGross - yesterdayGross;
+    const tipsDelta = todayTips - yesterdayTips;
+
+    res.json({
+      success: true,
+      data: {
+        today: {
+          gross: todayGross,
+          tips: todayTips,
+          total: todayGross + todayTips,
+          orderCount: todayPayments.length
+        },
+        yesterday: {
+          gross: yesterdayGross,
+          tips: yesterdayTips,
+          total: yesterdayGross + yesterdayTips,
+          orderCount: yesterdayPayments.length
+        },
+        comparison: {
+          grossDelta,
+          tipsDelta,
+          totalDelta: (todayGross + todayTips) - (yesterdayGross + yesterdayTips),
+          grossPercentChange: yesterdayGross > 0 ? ((grossDelta / yesterdayGross) * 100) : (todayGross > 0 ? 100 : 0),
+          tipsPercentChange: yesterdayTips > 0 ? ((tipsDelta / yesterdayTips) * 100) : (todayTips > 0 ? 100 : 0)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get server stats error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch server stats' });
+  }
+});
+
 export default router;

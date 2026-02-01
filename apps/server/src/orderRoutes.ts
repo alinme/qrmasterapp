@@ -5,25 +5,40 @@ import { getSocket } from './socket';
 
 const router = Router();
 
-// Get all orders for restaurant (Admin)
+// Get all orders for restaurant (Admin) - for SERVER role, ?mine=true returns only orders from tables they're assigned to
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
-    const { status, limit = 50 } = req.query;
+    const { status, limit = 50, mine } = req.query;
+
+    const where: any = {
+      restaurantId: req.user.restaurantId,
+      ...(status && { status: status as string })
+    };
+
+    // For SERVER role with mine=true, filter orders from tables assigned to this waiter
+    if (req.user.role === 'SERVER' && mine === 'true') {
+      where.table = {
+        serverId: req.user.userId
+      };
+    }
 
     const orders = await prisma.order.findMany({
-      where: {
-        restaurantId: req.user.restaurantId,
-        ...(status && { status: status as string })
-      },
+      where,
       include: {
         items: {
           include: {
             product: true
           }
         },
-        table: true
+        table: {
+          include: {
+            server: {
+              select: { id: true, email: true }
+            }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' },
       take: Number(limit)

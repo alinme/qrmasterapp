@@ -145,6 +145,23 @@ export const useBillsStore = defineStore('bills', () => {
     }
   }
 
+  async function fetchServerStats() {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${API_URL}/bills/server-stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (response.data.success) {
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to fetch server stats', error)
+      throw error
+    }
+  }
+
   function clearTableBill() {
     tableBill.value = null
   }
@@ -160,6 +177,7 @@ export const useBillsStore = defineStore('bills', () => {
     assignTable,
     releaseTable,
     fetchBillRequests,
+    fetchServerStats,
     clearTableBill
   }
 })

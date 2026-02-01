@@ -57,10 +57,11 @@ export const useOrdersStore = defineStore('orders', () => {
     }
   }
 
-  async function fetchOrders(status?: string) {
+  async function fetchOrders(status?: string, mineOnly = false) {
     loading.value = true
     try {
-      const params = status ? { status } : {}
+      const params: Record<string, string> = status ? { status } : {}
+      if (mineOnly) params.mine = 'true'
       const response = await axios.get(`${API_URL}/orders`, { params })
       if (response.data.success) {
         orders.value = response.data.data

@@ -1,18 +1,25 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useOrdersStore } from '@/stores/orders'
+import { useBillsStore } from '@/stores/bills'
+import { useAuthStore } from '@/stores/auth'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { RefreshCw, Eye } from 'lucide-vue-next'
+import { RefreshCw, Eye, DollarSign, TrendingUp, TrendingDown, Minus } from 'lucide-vue-next'
 import ServerReviewDialog from '@/components/orders/ServerReviewDialog.vue'
 import { toast } from 'vue-sonner'
 
 const ordersStore = useOrdersStore()
+const billsStore = useBillsStore()
+const authStore = useAuthStore()
 const selectedStatus = ref<string | null>(null)
 const reviewDialogOpen = ref(false)
 const selectedOrder = ref<any>(null)
+const serverStats = ref<any>(null)
+
+const isWaiter = computed(() => authStore.user?.role === 'SERVER')
 
 const statusConfig: Record<string, { variant: string; label: string }> = {
   RECEIVED: { variant: 'default', label: 'Received' },
@@ -41,8 +48,26 @@ const stats = computed(() => {
 
 onMounted(async () => {
   ordersStore.connectSocket()
-  await ordersStore.fetchOrders()
+  await ordersStore.fetchOrders(undefined, isWaiter.value)
+  if (isWaiter.value) {
+    try {
+      serverStats.value = await billsStore.fetchServerStats()
+    } catch {
+      serverStats.value = null
+    }
+  }
 })
+
+async function refresh() {
+  await ordersStore.fetchOrders(undefined, isWaiter.value)
+  if (isWaiter.value) {
+    try {
+      serverStats.value = await billsStore.fetchServerStats()
+    } catch {
+      serverStats.value = null
+    }
+  }
+}
 
 async function updateStatus(orderId: string, newStatus: string) {
   try {
@@ -92,13 +117,69 @@ function formatDate(dateString: string) {
     <!-- Header -->
     <div class="flex justify-between items-center">
       <div>
-        <h2 class="text-3xl font-bold tracking-tight">Live Orders</h2>
-        <p class="mt-1 text-muted-foreground">Manage and track all orders in real-time</p>
+        <h2 class="text-3xl font-bold tracking-tight">{{ isWaiter ? 'My Orders' : 'Live Orders' }}</h2>
+        <p class="mt-1 text-muted-foreground">{{ isWaiter ? 'Orders from your assigned tables' : 'Manage and track all orders in real-time' }}</p>
       </div>
-      <Button @click="ordersStore.fetchOrders()" variant="outline" :disabled="ordersStore.loading">
+      <Button @click="refresh" variant="outline" :disabled="ordersStore.loading">
         <RefreshCw class="mr-2 w-4 h-4" />
         Refresh
       </Button>
+    </div>
+
+    <!-- Waiter Earnings Stats -->
+    <div v-if="isWaiter && serverStats" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Card>
+        <CardHeader class="flex flex-row justify-between items-center pb-2 space-y-0">
+          <CardTitle class="text-sm font-medium">Today Gross</CardTitle>
+          <DollarSign class="w-4 h-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">{{ serverStats.today.gross.toFixed(2) }} RON</div>
+          <p class="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <TrendingUp v-if="serverStats.comparison.grossDelta > 0" class="w-3 h-3 text-green-600" />
+            <TrendingDown v-else-if="serverStats.comparison.grossDelta < 0" class="w-3 h-3 text-red-600" />
+            <Minus v-else class="w-3 h-3 text-gray-500" />
+            {{ serverStats.comparison.grossDelta >= 0 ? '+' : '' }}{{ serverStats.comparison.grossDelta.toFixed(2) }} vs yesterday
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader class="flex flex-row justify-between items-center pb-2 space-y-0">
+          <CardTitle class="text-sm font-medium">Today Tips</CardTitle>
+          <DollarSign class="w-4 h-4 text-amber-600" />
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold text-amber-600">{{ serverStats.today.tips.toFixed(2) }} RON</div>
+          <p class="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <TrendingUp v-if="serverStats.comparison.tipsDelta > 0" class="w-3 h-3 text-green-600" />
+            <TrendingDown v-else-if="serverStats.comparison.tipsDelta < 0" class="w-3 h-3 text-red-600" />
+            <Minus v-else class="w-3 h-3 text-gray-500" />
+            {{ serverStats.comparison.tipsDelta >= 0 ? '+' : '' }}{{ serverStats.comparison.tipsDelta.toFixed(2) }} vs yesterday
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader class="flex flex-row justify-between items-center pb-2 space-y-0">
+          <CardTitle class="text-sm font-medium">Today Total</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">{{ serverStats.today.total.toFixed(2) }} RON</div>
+          <p class="text-xs text-muted-foreground mt-1">
+            Yesterday: {{ serverStats.yesterday.total.toFixed(2) }} RON
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader class="flex flex-row justify-between items-center pb-2 space-y-0">
+          <CardTitle class="text-sm font-medium">Payments Processed</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">{{ serverStats.today.orderCount }}</div>
+          <p class="text-xs text-muted-foreground mt-1">
+            Yesterday: {{ serverStats.yesterday.orderCount }}
+          </p>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Stats Cards -->
@@ -244,7 +325,7 @@ function formatDate(dateString: string) {
                     Revizuiește
                   </Button>
                   <Button
-                    v-if="order.status === 'PREPARING'"
+                    v-if="!isWaiter && order.status === 'PREPARING'"
                     size="sm"
                     variant="secondary"
                     @click="updateStatus(order.id, 'READY')"
@@ -259,7 +340,7 @@ function formatDate(dateString: string) {
                     Mark Served
                   </Button>
                   <Button
-                    v-if="order.status !== 'CANCELLED' && order.status !== 'SERVED'"
+                    v-if="!isWaiter && order.status !== 'CANCELLED' && order.status !== 'SERVED'"
                     size="sm"
                     variant="destructive"
                     @click="updateStatus(order.id, 'CANCELLED')"

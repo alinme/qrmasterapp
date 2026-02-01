@@ -3,6 +3,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useOrderStore } from '../stores/order'
 import { useCartStore } from '../stores/cart'
+import { Inbox, Search, ChefHat, CircleCheck, UtensilsCrossed } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,10 +16,16 @@ const status = computed(() => orderStore.orderStatus)
 const order = computed(() => orderStore.currentOrder)
 
 const stepOrder = ['RECEIVED', 'SERVER_REVIEW', 'PREPARING', 'READY', 'SERVED']
-const steps = ['PRIMITĂ', 'REVIZUIRE', 'SE PREGĂTEȘTE', 'GATA', 'SERVITĂ']
+const stepIcons = [
+  { icon: Inbox, label: 'Primită' },
+  { icon: Search, label: 'Revizuire' },
+  { icon: ChefHat, label: 'Pregătire' },
+  { icon: CircleCheck, label: 'Gata' },
+  { icon: UtensilsCrossed, label: 'Servită' }
+]
 
-function getStepIndex(status: string) {
-  const index = stepOrder.indexOf(status)
+function getStepIndex(s: string) {
+  const index = stepOrder.indexOf(s)
   return index >= 0 ? index : 0
 }
 
@@ -80,25 +87,36 @@ onUnmounted(() => {
     <div v-if="!loading" class="w-full max-w-sm space-y-8">
       <div class="relative">
         <!-- Progress Bar Background -->
-        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 -z-10"></div>
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10"></div>
         
         <div class="flex justify-between">
-           <div v-for="(step, index) in steps" :key="step" class="flex flex-col items-center bg-white">
+           <div v-for="(step, index) in stepIcons" :key="index" class="flex flex-col items-center bg-white flex-1 min-w-0">
              <div 
-               class="w-4 h-4 rounded-full border-2 transition-colors duration-500"
-               :class="getStepIndex(status) >= index ? 'bg-green-500 border-green-500' : 'bg-white border-gray-300'"
-             ></div>
-             <span class="text-xs mt-2 font-medium" :class="getStepIndex(status) >= index ? 'text-green-600' : 'text-gray-400'">{{ step }}</span>
+               class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-500 shrink-0"
+               :class="getStepIndex(status) >= index ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-gray-300 text-gray-400'"
+             >
+               <component :is="step.icon" class="w-4 h-4" />
+             </div>
+             <span class="text-[10px] mt-1.5 font-medium truncate w-full px-0.5" :class="getStepIndex(status) >= index ? 'text-green-600' : 'text-gray-400'" :title="step.label">{{ step.label }}</span>
            </div>
         </div>
       </div>
       
-      <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800">
-        <p v-if="status === 'RECEIVED'">Am primit comanda ta.</p>
-        <p v-if="status === 'SERVER_REVIEW'">Serverul verifică comanda ta.</p>
-        <p v-if="status === 'PREPARING'">Bucătăria pregătește mâncarea ta.</p>
-        <p v-if="status === 'READY'">Comanda ta este gata!</p>
-        <p v-if="status === 'SERVED'">Poftă bună!</p>
+      <div class="flex items-center gap-3 p-3 rounded-lg text-sm min-w-0" :class="{
+        'bg-blue-50 text-blue-800': status === 'RECEIVED',
+        'bg-purple-50 text-purple-800': status === 'SERVER_REVIEW',
+        'bg-yellow-50 text-yellow-800': status === 'PREPARING',
+        'bg-green-50 text-green-800': status === 'READY',
+        'bg-gray-50 text-gray-800': status === 'SERVED'
+      }">
+        <component :is="stepIcons[Math.min(getStepIndex(status), stepIcons.length - 1)]?.icon ?? Inbox" class="w-5 h-5 shrink-0 flex-shrink-0" />
+        <p class="truncate min-w-0">
+          <span v-if="status === 'RECEIVED'">Am primit comanda ta.</span>
+          <span v-if="status === 'SERVER_REVIEW'">Serverul verifică comanda ta.</span>
+          <span v-if="status === 'PREPARING'">Bucătăria pregătește mâncarea ta.</span>
+          <span v-if="status === 'READY'">Comanda ta este gata!</span>
+          <span v-if="status === 'SERVED'">Poftă bună!</span>
+        </p>
       </div>
 
       <!-- Order Items -->

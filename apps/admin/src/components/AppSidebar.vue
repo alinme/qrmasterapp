@@ -32,7 +32,7 @@ const userRole = computed(() => auth.user?.role || '')
 const allNavItems = [
   { name: 'Overview', path: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'SERVER', 'KITCHEN', 'STAFF'] },
   { name: 'Menu', path: '/menu', icon: Menu, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
-  { name: 'Orders', path: '/orders', icon: Table, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'KITCHEN'] },
+  { name: 'Orders', path: '/orders', icon: Table, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'KITCHEN', 'SERVER'] },
   { name: 'Kitchen', path: '/kitchen', icon: ChefHat, external: true, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'KITCHEN'] },
   { name: 'Server', path: '/server', icon: Receipt, badge: pendingReviewOrdersCount, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'SERVER'] },
   { name: 'Tables', path: '/tables', icon: QrCode, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'SERVER'] },

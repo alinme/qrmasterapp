@@ -6,7 +6,7 @@ import { useCartStore } from '@/stores/cart'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, UtensilsCrossed } from 'lucide-vue-next'
+import { CheckCircle, UtensilsCrossed, Inbox, Search, ChefHat, CircleCheck } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -16,8 +16,8 @@ const loading = ref(false)
 
 const statusLabels: Record<string, string> = {
   'RECEIVED': 'Primită',
-  'SERVER_REVIEW': 'În revizuire',
-  'PREPARING': 'Se pregătește',
+  'SERVER_REVIEW': 'Revizuire',
+  'PREPARING': 'Pregătire',
   'READY': 'Gata',
   'SERVED': 'Servită',
   'CANCELLED': 'Anulată'
@@ -33,7 +33,15 @@ const statusDescriptions: Record<string, string> = {
 }
 
 const stepOrder = ['RECEIVED', 'SERVER_REVIEW', 'PREPARING', 'READY', 'SERVED']
-const steps = ['Primită', 'Revizuire', 'Se pregătește', 'Gata', 'Servită']
+
+// Icons for each step
+const stepIcons = [
+  { icon: Inbox, label: 'Primită' },
+  { icon: Search, label: 'Revizuire' },
+  { icon: ChefHat, label: 'Pregătire' },
+  { icon: CircleCheck, label: 'Gata' },
+  { icon: UtensilsCrossed, label: 'Servită' }
+]
 
 // Map SERVER_REVIEW to index 1 in stepOrder
 function getStepIndex(status: string) {
@@ -179,7 +187,7 @@ function orderMore() {
                   {{ new Date(currentOrder.createdAt).toLocaleString('ro-RO') }}
                 </p>
               </div>
-              <Badge :class="{
+              <Badge class="flex items-center gap-1.5 text-xs shrink-0" :class="{
                 'bg-blue-100 text-blue-800': status === 'RECEIVED',
                 'bg-purple-100 text-purple-800': status === 'SERVER_REVIEW',
                 'bg-yellow-100 text-yellow-800': status === 'PREPARING',
@@ -187,32 +195,36 @@ function orderMore() {
                 'bg-gray-100 text-gray-800': status === 'SERVED',
                 'bg-red-100 text-red-800': status === 'CANCELLED'
               }">
-                {{ statusLabels[status] }}
+                <component :is="stepIcons[Math.min(getStepIndex(status), stepIcons.length - 1)]?.icon ?? Inbox" class="w-3.5 h-3.5 shrink-0" />
+                <span class="truncate max-w-[70px]">{{ statusLabels[status] }}</span>
               </Badge>
             </div>
           </CardHeader>
         </Card>
 
-        <!-- Progress Steps -->
+        <!-- Progress Steps - Icons only -->
         <Card>
-          <CardContent class="pt-6">
+          <CardContent class="pt-6 pb-6">
             <div class="relative">
-              <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 -z-10"></div>
+              <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10"></div>
               <div class="flex justify-between">
                 <div
-                  v-for="(step, index) in steps"
-                  :key="step"
-                  class="flex flex-col items-center bg-white"
+                  v-for="(step, index) in stepIcons"
+                  :key="index"
+                  class="flex flex-col items-center bg-white flex-1 min-w-0"
                 >
                   <div
-                    class="w-4 h-4 rounded-full border-2 transition-colors duration-500"
-                    :class="getStepIndex(status) >= index ? 'bg-green-500 border-green-500' : 'bg-white border-gray-300'"
-                  ></div>
-                  <span
-                    class="text-xs mt-2 font-medium text-center max-w-[60px]"
-                    :class="getStepIndex(status) >= index ? 'text-green-600' : 'text-gray-400'"
+                    class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-500 shrink-0"
+                    :class="getStepIndex(status) >= index ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-gray-300 text-gray-400'"
                   >
-                    {{ step }}
+                    <component :is="step.icon" class="w-4 h-4" />
+                  </div>
+                  <span
+                    class="text-[10px] mt-1.5 font-medium text-center truncate w-full px-0.5"
+                    :class="getStepIndex(status) >= index ? 'text-green-600' : 'text-gray-400'"
+                    :title="step.label"
+                  >
+                    {{ step.label }}
                   </span>
                 </div>
               </div>
@@ -220,7 +232,7 @@ function orderMore() {
           </CardContent>
         </Card>
 
-        <!-- Status Message -->
+        <!-- Status Message - Compact with icon -->
         <Card 
           :class="{
             'ring-4 ring-green-500 ring-opacity-75': isReady && !notificationFlash,
@@ -230,12 +242,12 @@ function orderMore() {
           <CardContent class="pt-6">
             <div 
               v-if="isReady"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-800 animate-bounce mb-4 mx-auto block"
+              class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 text-green-800 animate-bounce mb-4 mx-auto text-sm"
             >
-              <CheckCircle class="w-5 h-5" />
-              <span class="font-bold">Comanda ta este gata!</span>
+              <CheckCircle class="w-4 h-4 shrink-0" />
+              <span class="font-semibold truncate">Gata!</span>
             </div>
-            <div class="p-4 rounded-lg" :class="{
+            <div class="flex items-center gap-3 p-3 rounded-lg min-w-0" :class="{
               'bg-blue-50 text-blue-800': status === 'RECEIVED',
               'bg-purple-50 text-purple-800': status === 'SERVER_REVIEW',
               'bg-yellow-50 text-yellow-800': status === 'PREPARING',
@@ -243,7 +255,8 @@ function orderMore() {
               'bg-gray-50 text-gray-800': status === 'SERVED',
               'bg-red-50 text-red-800': status === 'CANCELLED'
             }">
-              <p>{{ statusDescriptions[status] || 'Comanda ta este în procesare.' }}</p>
+              <component :is="stepIcons[Math.min(getStepIndex(status), stepIcons.length - 1)]?.icon ?? Inbox" class="w-5 h-5 shrink-0 flex-shrink-0" />
+              <p class="text-sm truncate min-w-0">{{ statusDescriptions[status] || 'Comanda ta este în procesare.' }}</p>
             </div>
           </CardContent>
         </Card>
