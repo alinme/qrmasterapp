@@ -10,6 +10,8 @@ dotenv.config({ path: envPath })
 // Prisma 7: DATABASE_URL is read from environment automatically
 const prisma = new PrismaClient()
 
+const DEFAULT_PRODUCT_IMAGE_URL = 'https://picsum.photos/seed/picsum/300/300'
+
 const commonAllergens = [
   ['Gluten', 'Dairy'],
   ['Dairy', 'Eggs'],
@@ -25,153 +27,553 @@ const commonAllergens = [
 
 const categoryData = [
   {
-    name: 'Appetizers',
-    products: [
-      { name: 'Bruschetta Trio', description: 'Three varieties of bruschetta with fresh tomatoes, basil, mozzarella, and roasted peppers. Served on toasted artisan bread with a drizzle of balsamic glaze.', price: 12.99 },
-      { name: 'Crispy Calamari', description: 'Tender rings of squid lightly battered and fried to golden perfection. Served with marinara sauce and lemon aioli for dipping.', price: 14.99 },
-      { name: 'Spinach Artichoke Dip', description: 'Creamy blend of spinach, artichokes, and three cheeses baked until bubbly. Served with warm tortilla chips and fresh vegetables.', price: 11.99 },
-      { name: 'Chicken Wings', description: 'Jumbo chicken wings tossed in your choice of buffalo, BBQ, or honey garlic sauce. Served with celery sticks and blue cheese dressing.', price: 13.99 },
-      { name: 'Mozzarella Sticks', description: 'Golden fried mozzarella sticks with a crispy breadcrumb coating. Served with marinara sauce for dipping.', price: 9.99 },
-      { name: 'Shrimp Cocktail', description: 'Chilled jumbo shrimp served with our signature cocktail sauce and fresh lemon wedges. A classic appetizer.', price: 16.99 },
-      { name: 'Loaded Nachos', description: 'Crispy tortilla chips topped with melted cheese, jalapeños, black beans, sour cream, guacamole, and pico de gallo.', price: 12.99 },
-      { name: 'Stuffed Mushrooms', description: 'Button mushrooms stuffed with herbed cream cheese and breadcrumbs, baked until golden and tender.', price: 10.99 },
-      { name: 'Onion Rings', description: 'Thick-cut onion rings battered and fried to crispy perfection. Served with chipotle aioli dipping sauce.', price: 8.99 },
-      { name: 'Caprese Salad', description: 'Fresh mozzarella, ripe tomatoes, and basil drizzled with extra virgin olive oil and balsamic reduction.', price: 11.99 }
+    "name": "Aperitive",
+    "products": [
+      {
+        "name": "Bruschetta Trio",
+        "description": "Trei varietăți de bruschette cu roșii proaspete, busuioc, mozzarella și ardei copți. Servită pe pâine artizanală prăjită, cu un fir de glazură balsamică.",
+        "price": 12.99
+      },
+      {
+        "name": "Calmar Crocant",
+        "description": "Inele fragede de calmar, ușor pane și fripte până la o culoare aurie perfectă. Servite cu sos marinara și aioli de lămâie pentru înmuiat.",
+        "price": 14.99
+      },
+      {
+        "name": "Dip de Spanac și Anghinare",
+        "description": "Un amestec cremos de spanac, anghinare și trei tipuri de brânzeturi, copt până devine cu bule. Servit cu chipsuri de tortilla calde și legume proaspete.",
+        "price": 11.99
+      },
+      {
+        "name": "Aripioare de Pui",
+        "description": "Aripioare de pui jumbo, amestecate în sosul tău preferat: buffalo, BBQ sau usturoi-miere. Servite cu țelină și sos roquefort.",
+        "price": 13.99
+      },
+      {
+        "name": "Batoane de Mozzarella",
+        "description": "Batoane de mozzarella prăjite aurii, cu un strat crocant de pesmet. Servite cu sos marinara pentru înmuiat.",
+        "price": 9.99
+      },
+      {
+        "name": "Coctel de Creveți",
+        "description": "Creveți jumbo răciți, serviți cu sosul nostru signature pentru coctel și felii proaspete de lămâie. Un aperitiv clasic.",
+        "price": 16.99
+      },
+      {
+        "name": "Nachos Încărcați",
+        "description": "Chipsuri crocante de tortilla acoperite cu brânză topită, jalapeño, fasole neagră, smântână, guacamole și pico de gallo.",
+        "price": 12.99
+      },
+      {
+        "name": "Ciuperci Umplute",
+        "description": "Ciuperci button umplute cu brânză de cremă cu ierburi și pesmet, coapte până devin aurii și fragede.",
+        "price": 10.99
+      },
+      {
+        "name": "Inele de Ceapă",
+        "description": "Inele groase de ceapă, pane și fripte până la crocanță perfectă. Servite cu sos de aioli de chipotle pentru înmuiat.",
+        "price": 8.99
+      },
+      {
+        "name": "Salată Caprese",
+        "description": "Mozzarella proaspătă, roșii coapte și busuioc, stropite cu ulei de măsline extravirgin și reducție de balsamic.",
+        "price": 11.99
+      }
     ]
   },
   {
-    name: 'Salads',
-    products: [
-      { name: 'Caesar Salad', description: 'Crisp romaine lettuce tossed with our house-made Caesar dressing, parmesan cheese, croutons, and fresh cracked black pepper.', price: 10.99 },
-      { name: 'Greek Salad', description: 'Mixed greens topped with feta cheese, kalamata olives, cucumbers, tomatoes, red onions, and our tangy Greek vinaigrette.', price: 11.99 },
-      { name: 'Cobb Salad', description: 'Fresh mixed greens with grilled chicken, crispy bacon, hard-boiled eggs, avocado, tomatoes, and blue cheese crumbles.', price: 13.99 },
-      { name: 'Asian Chicken Salad', description: 'Mixed greens with grilled chicken, mandarin oranges, crispy wontons, almonds, and sesame ginger dressing.', price: 12.99 },
-      { name: 'Mediterranean Salad', description: 'Arugula and spinach with grilled vegetables, chickpeas, feta cheese, and a lemon herb vinaigrette.', price: 11.99 },
-      { name: 'Southwest Salad', description: 'Mixed greens with black beans, corn, tomatoes, avocado, tortilla strips, and chipotle ranch dressing.', price: 12.99 },
-      { name: 'Waldorf Salad', description: 'Crisp apples, celery, grapes, and walnuts mixed with mayonnaise and served on a bed of lettuce.', price: 10.99 },
-      { name: 'Spinach Salad', description: 'Fresh baby spinach with strawberries, goat cheese, candied pecans, and poppy seed dressing.', price: 11.99 },
-      { name: 'Chef Salad', description: 'Mixed greens with ham, turkey, cheese, hard-boiled eggs, and your choice of dressing.', price: 12.99 },
-      { name: 'Arugula & Pear Salad', description: 'Peppery arugula with sliced pears, gorgonzola cheese, walnuts, and a honey balsamic vinaigrette.', price: 11.99 }
+    "name": "Salate",
+    "products": [
+      {
+        "name": "Salată Caesar",
+        "description": "Salată de varză romenă crocantă, amestecată cu sosul nostru Caesar făcut în casă, brânză parmezan, crutoane și piper negru proaspăt măcinat.",
+        "price": 10.99
+      },
+      {
+        "name": "Salată Grecească",
+        "description": "Frunze verzi mixte acoperite cu brânză feta, măsline kalamata, castraveți, roșii, ceapă roșie și vinegreta noastră grecească acidulată.",
+        "price": 11.99
+      },
+      {
+        "name": "Salată Cobb",
+        "description": "Frunze verzi mixte proaspete cu pui la grătar, bacon crocant, ouă fierte tari, avocado, roșii și firimituri de brânză cu mucegai.",
+        "price": 13.99
+      },
+      {
+        "name": "Salată Asiatică cu Pui",
+        "description": "Frunze verzi mixte cu pui la grătar, mandarine, wonton crocanți, migdale și sos de susan și ghimber.",
+        "price": 12.99
+      },
+      {
+        "name": "Salată Mediteraneană",
+        "description": "Rucola și spanac cu legume la grătar, năut, brânză feta și o vinegretă de lămâie și ierburi.",
+        "price": 11.99
+      },
+      {
+        "name": "Salată Southwest",
+        "description": "Frunze verzi mixte cu fasole neagră, porumb, roșii, avocado, fâșii de tortilla și sos chipotle ranch.",
+        "price": 12.99
+      },
+      {
+        "name": "Salată Waldorf",
+        "description": "Mere crocante, țelină, struguri și nuci amestecate cu maioneză și servite pe un pat de salată verde.",
+        "price": 10.99
+      },
+      {
+        "name": "Salată de Spanac",
+        "description": "Spanac baby proaspăt cu căpșuni, brânză de capră, nuci caramelizate și sos cu semințe de mac.",
+        "price": 11.99
+      },
+      {
+        "name": "Salată Chef",
+        "description": "Frunze verzi mixte cu șuncă, curcan, brânză, ouă fierte tari și sosul tău preferat.",
+        "price": 12.99
+      },
+      {
+        "name": "Salată cu Rucola și Pară",
+        "description": "Rucola piperată cu felii de pară, brânză gorgonzola, nuci și o vinegretă de miere și balsamic.",
+        "price": 11.99
+      }
     ]
   },
   {
-    name: 'Burgers',
-    products: [
-      { name: 'Classic Burger', description: 'Juicy beef patty on a toasted brioche bun with lettuce, tomato, onion, pickles, and our signature sauce. Served with fries.', price: 14.99 },
-      { name: 'Bacon Cheeseburger', description: 'Our classic burger topped with crispy bacon, cheddar cheese, lettuce, tomato, and special sauce.', price: 16.99 },
-      { name: 'Mushroom Swiss Burger', description: 'Beef patty topped with sautéed mushrooms, Swiss cheese, caramelized onions, and garlic aioli.', price: 15.99 },
-      { name: 'BBQ Burger', description: 'Grilled burger with crispy onion rings, cheddar cheese, bacon, and tangy BBQ sauce.', price: 15.99 },
-      { name: 'Veggie Burger', description: 'House-made veggie patty with avocado, sprouts, tomato, and herb mayo on a whole grain bun.', price: 13.99 },
-      { name: 'Turkey Burger', description: 'Lean turkey patty with cranberry aioli, arugula, and provolone cheese on a multigrain bun.', price: 14.99 },
-      { name: 'Chicken Burger', description: 'Grilled chicken breast with lettuce, tomato, red onion, and chipotle mayo on a brioche bun.', price: 13.99 },
-      { name: 'Double Stack Burger', description: 'Two beef patties with double cheese, lettuce, tomato, pickles, and special sauce.', price: 17.99 },
-      { name: 'Hawaiian Burger', description: 'Beef patty with grilled pineapple, teriyaki glaze, Swiss cheese, and crispy onions.', price: 15.99 },
-      { name: 'Breakfast Burger', description: 'Beef patty topped with a fried egg, crispy hash browns, bacon, and cheddar cheese.', price: 16.99 }
+    "name": "Burgheri",
+    "products": [
+      {
+        "name": "Burgher Clasic",
+        "description": "Chiflă de vită suculentă pe o chiflă brioche prăjită cu salată verde, roșie, ceapă, murături și sosul nostru signature. Servit cu cartofi prăjiți.",
+        "price": 14.99
+      },
+      {
+        "name": "Burgher cu Bacon și Brânză",
+        "description": "Burgherul nostru clasic acoperit cu bacon crocant, brânză cheddar, salată verde, roșie și sos special.",
+        "price": 16.99
+      },
+      {
+        "name": "Burgher cu Ciuperci și Brânză Elvețiană",
+        "description": "Chiflă de vită acoperită cu ciuperci călite, brânză elvețiană, ceapă caramelizată și aioli de usturoi.",
+        "price": 15.99
+      },
+      {
+        "name": "Burgher BBQ",
+        "description": "Burgher la grătar cu inele de ceapă crocante, brânză cheddar, bacon și sos BBQ acidulat.",
+        "price": 15.99
+      },
+      {
+        "name": "Burgher Vegetarian",
+        "description": "Chiflă vegetariană făcută în casă cu avocado, muguri, roșie și maioneză cu ierburi pe o chiflă cu cereale integrale.",
+        "price": 13.99
+      },
+      {
+        "name": "Burgher de Curcan",
+        "description": "Chiflă slabă de curcan cu aioli de merișoare, rucola și brânză provolone pe o chiflă cu cereale multiple.",
+        "price": 14.99
+      },
+      {
+        "name": "Burgher de Pui",
+        "description": "Piept de pui la grătar cu salată verde, roșie, ceapă roșie și maioneză de chipotle pe o chiflă brioche.",
+        "price": 13.99
+      },
+      {
+        "name": "Burgher Dublu",
+        "description": "Două chifle de vită cu brânză dublă, salată verde, roșie, murături și sos special.",
+        "price": 17.99
+      },
+      {
+        "name": "Burgher Hawaii",
+        "description": "Chiflă de vită cu ananas la grătar, glazură teriyaki, brânză elvețiană și ceapă crocantă.",
+        "price": 15.99
+      },
+      {
+        "name": "Burgher de Mic Dejun",
+        "description": "Chiflă de vită acoperită cu un ou ochi, cartofi pai crocanți, bacon și brânză cheddar.",
+        "price": 16.99
+      }
     ]
   },
   {
-    name: 'Pizza',
-    products: [
-      { name: 'Margherita', description: 'Classic pizza with fresh mozzarella, tomato sauce, basil leaves, and a drizzle of olive oil. Simple and delicious.', price: 12.99 },
-      { name: 'Pepperoni', description: 'Traditional pepperoni pizza with mozzarella cheese and our house-made tomato sauce.', price: 14.99 },
-      { name: 'Hawaiian', description: 'Ham, pineapple, and mozzarella cheese on our signature pizza crust. A tropical favorite.', price: 15.99 },
-      { name: 'Meat Lovers', description: 'Loaded with pepperoni, Italian sausage, bacon, ham, and mozzarella cheese.', price: 17.99 },
-      { name: 'Vegetarian', description: 'Fresh vegetables including bell peppers, mushrooms, onions, olives, and tomatoes with mozzarella.', price: 14.99 },
-      { name: 'BBQ Chicken', description: 'Grilled chicken, red onions, cilantro, and BBQ sauce with mozzarella cheese.', price: 16.99 },
-      { name: 'Four Cheese', description: 'Mozzarella, gorgonzola, parmesan, and fontina cheeses on a white sauce base.', price: 15.99 },
-      { name: 'Supreme', description: 'Pepperoni, Italian sausage, green peppers, mushrooms, onions, and black olives.', price: 16.99 },
-      { name: 'White Pizza', description: 'Ricotta, mozzarella, and parmesan cheeses with garlic, spinach, and olive oil.', price: 15.99 },
-      { name: 'Buffalo Chicken', description: 'Spicy buffalo chicken, red onions, blue cheese crumbles, and ranch drizzle.', price: 16.99 }
+    "name": "Pizza",
+    "products": [
+      {
+        "name": "Margherita",
+        "description": "Pizza clasică cu mozzarella proaspătă, sos de roșii, frunze de busuioc și un fir de ulei de măsline. Simplă și delicioasă.",
+        "price": 12.99
+      },
+      {
+        "name": "Pepperoni",
+        "description": "Pizza tradițională cu pepperoni, brânză mozzarella și sosul nostru de roșii făcut în casă.",
+        "price": 14.99
+      },
+      {
+        "name": "Hawaiian",
+        "description": "Șuncă, ananas și brânză mozzarella pe aluatul nostru signature. Un favorit tropical.",
+        "price": 15.99
+      },
+      {
+        "name": "Pentru Iubitorii de Carne",
+        "description": "Încărcată cu pepperoni, cârnați italienești, bacon, șuncă și brânză mozzarella.",
+        "price": 17.99
+      },
+      {
+        "name": "Vegetariană",
+        "description": "Legume proaspete, inclusiv ardei grasi, ciuperci, ceapă, măsline și roșii cu mozzarella.",
+        "price": 14.99
+      },
+      {
+        "name": "Pui BBQ",
+        "description": "Pui la grătar, ceapă roșie, coriandru și sos BBQ cu brânză mozzarella.",
+        "price": 16.99
+      },
+      {
+        "name": "Patru Brânzeturi",
+        "description": "Brânzeturi mozzarella, gorgonzola, parmezan și fontina pe o bază de sos alb.",
+        "price": 15.99
+      },
+      {
+        "name": "Supremă",
+        "description": "Pepperoni, cârnați italienești, ardei gras, ciuperci, ceapă și măsline negre.",
+        "price": 16.99
+      },
+      {
+        "name": "Pizza Albă",
+        "description": "Brânzeturi ricotta, mozzarella și parmezan cu usturoi, spanac și ulei de măsline.",
+        "price": 15.99
+      },
+      {
+        "name": "Pui Buffalo",
+        "description": "Pui picant buffalo, ceapă roșie, firimituri de brânză cu mucegai și un fir de sos ranch.",
+        "price": 16.99
+      }
     ]
   },
   {
-    name: 'Pasta',
-    products: [
-      { name: 'Spaghetti Carbonara', description: 'Classic Italian pasta with crispy pancetta, eggs, parmesan cheese, and black pepper. Rich and creamy.', price: 16.99 },
-      { name: 'Fettuccine Alfredo', description: 'Fresh fettuccine noodles tossed in a creamy parmesan sauce with garlic and herbs.', price: 15.99 },
-      { name: 'Lasagna', description: 'Layers of pasta, ground beef, ricotta, mozzarella, and marinara sauce baked to perfection.', price: 17.99 },
-      { name: 'Penne Arrabbiata', description: 'Penne pasta in a spicy tomato sauce with garlic, red chili peppers, and fresh basil.', price: 14.99 },
-      { name: 'Chicken Parmesan', description: 'Breaded chicken breast topped with marinara and mozzarella, served over spaghetti.', price: 18.99 },
-      { name: 'Shrimp Scampi', description: 'Linguine pasta with succulent shrimp, garlic, white wine, lemon, and butter sauce.', price: 19.99 },
-      { name: 'Bolognese', description: 'Slow-cooked meat sauce with ground beef, tomatoes, and herbs served over tagliatelle.', price: 17.99 },
-      { name: 'Pesto Pasta', description: 'Fresh basil pesto with pine nuts, parmesan, and olive oil tossed with your choice of pasta.', price: 15.99 },
-      { name: 'Mac & Cheese', description: 'Creamy macaroni with a blend of cheeses, topped with breadcrumbs and baked until golden.', price: 13.99 },
-      { name: 'Seafood Linguine', description: 'Linguine with a medley of fresh seafood in a white wine and garlic sauce.', price: 21.99 }
+    "name": "Paste",
+    "products": [
+      {
+        "name": "Spaghetti Carbonara",
+        "description": "Paste italienești clasice cu pancetta crocantă, ouă, brânză parmezan și piper negru. Bogate și cremoase.",
+        "price": 16.99
+      },
+      {
+        "name": "Fettuccine Alfredo",
+        "description": "Tăiței fettuccine proaspeți amestecați într-un sos cremos de parmezan cu usturoi și ierburi.",
+        "price": 15.99
+      },
+      {
+        "name": "Lasagna",
+        "description": "Straturi de pastă, carne de vită tocată, ricotta, mozzarella și sos marinara, coapte la perfecție.",
+        "price": 17.99
+      },
+      {
+        "name": "Penne Arrabbiata",
+        "description": "Paste penne într-un sos picant de roșii cu usturoi, ardei iuți roșii și busuioc proaspăt.",
+        "price": 14.99
+      },
+      {
+        "name": "Pui Parmesan",
+        "description": "Piept de pui pane acoperit cu sos marinara și mozzarella, servit peste spaghetti.",
+        "price": 18.99
+      },
+      {
+        "name": "Scampi de Creveți",
+        "description": "Paste linguine cu creveți suculenți, usturoi, vin alb, lămâie și sos cu unt.",
+        "price": 19.99
+      },
+      {
+        "name": "Bolognese",
+        "description": "Sos de carne gătit lent cu carne de vită tocată, roșii și ierburi, servit peste tagliatelle.",
+        "price": 17.99
+      },
+      {
+        "name": "Paste cu Pesto",
+        "description": "Pesto proaspăt de busuioc cu nuci de pin, parmezan și ulei de măsline amestecat cu tipul tău preferat de paste.",
+        "price": 15.99
+      },
+      {
+        "name": "Mac & Cheese",
+        "description": "Macaroane cremoase cu un amestec de brânzeturi, acoperite cu pesmet și coapte până devin aurii.",
+        "price": 13.99
+      },
+      {
+        "name": "Linguine cu Fructe de Mare",
+        "description": "Linguine cu un amestec de fructe de mare proaspete într-un sos cu vin alb și usturoi.",
+        "price": 21.99
+      }
     ]
   },
   {
-    name: 'Seafood',
-    products: [
-      { name: 'Grilled Salmon', description: 'Fresh Atlantic salmon grilled to perfection, served with roasted vegetables and lemon butter sauce.', price: 24.99 },
-      { name: 'Fish & Chips', description: 'Beer-battered cod with crispy fries, coleslaw, and tartar sauce. A British classic.', price: 16.99 },
-      { name: 'Lobster Roll', description: 'Fresh lobster meat mixed with mayo and herbs, served in a buttered roll with fries.', price: 28.99 },
-      { name: 'Shrimp Scampi', description: 'Large shrimp sautéed in garlic, white wine, and butter, served over pasta or rice.', price: 22.99 },
-      { name: 'Crab Cakes', description: 'Jumbo lump crab cakes pan-seared until golden, served with remoulade sauce and lemon.', price: 23.99 },
-      { name: 'Tuna Steak', description: 'Seared tuna steak with a sesame crust, served with wasabi aioli and pickled ginger.', price: 25.99 },
-      { name: 'Fish Tacos', description: 'Grilled white fish in soft tortillas with cabbage slaw, avocado, and chipotle crema.', price: 15.99 },
-      { name: 'Seafood Paella', description: 'Traditional Spanish rice dish with shrimp, mussels, clams, and chorizo.', price: 26.99 },
-      { name: 'Linguine alle Vongole', description: 'Linguine pasta with fresh clams in a white wine and garlic sauce.', price: 20.99 },
-      { name: 'Coconut Shrimp', description: 'Crispy coconut-breaded shrimp served with sweet chili dipping sauce.', price: 18.99 }
+    "name": "Fructe de Mare",
+    "products": [
+      {
+        "name": "Somon la Grătar",
+        "description": "Somon proaspăt Atlantic grătat la perfecție, servit cu legume copțe și sos cu unt și lămâie.",
+        "price": 24.99
+      },
+      {
+        "name": "Pește și Cartofi Prăjiți",
+        "description": "Cod pane în aluat de bere cu cartofi prăjiți crocanți, salată de varză și sos tartar. Un clasic britanic.",
+        "price": 16.99
+      },
+      {
+        "name": "Lobster Roll",
+        "description": "Carne proaspătă de homar amestecată cu maioneză și ierburi, servită într-un chifle cu unt și cartofi prăjiți.",
+        "price": 28.99
+      },
+      {
+        "name": "Scampi de Creveți",
+        "description": "Creveți mari căliți în usturoi, vin alb și unt, serviți peste paste sau orez.",
+        "price": 22.99
+      },
+      {
+        "name": "Prăjiturele de Crab",
+        "description": "Prăjiturele de crab jumbo cu bucăți mari, sezate în tigaie până devin aurii, servite cu sos remoulade și lămâie.",
+        "price": 23.99
+      },
+      {
+        "name": "Friptură de Ton",
+        "description": "Friptură de ton searată cu un crust de susan, servită cu aioli de wasabi și ghimber murat.",
+        "price": 25.99
+      },
+      {
+        "name": "Taco cu Pește",
+        "description": "Pește alb la grătar în tortilla moale cu salată de varză, avocado și smântână de chipotle.",
+        "price": 15.99
+      },
+      {
+        "name": "Paella cu Fructe de Mare",
+        "description": "Preparat tradițional spaniol de orez cu creveți, midii, scoici și chorizo.",
+        "price": 26.99
+      },
+      {
+        "name": "Linguine alle Vongole",
+        "description": "Paste linguine cu scoici proaspete într-un sos cu vin alb și usturoi.",
+        "price": 20.99
+      },
+      {
+        "name": "Creveți cu Nucă de Cocoș",
+        "description": "Creveți crocanți pane cu nucă de cocos, serviți cu sos picant dulce de chili pentru înmuiat.",
+        "price": 18.99
+      }
     ]
   },
   {
-    name: 'Steaks',
-    products: [
-      { name: 'Ribeye Steak', description: 'Prime ribeye steak grilled to your preference, served with garlic mashed potatoes and seasonal vegetables.', price: 32.99 },
-      { name: 'Filet Mignon', description: 'Tender filet mignon cooked to perfection, served with roasted potatoes and béarnaise sauce.', price: 34.99 },
-      { name: 'New York Strip', description: 'Well-marbled strip steak grilled and served with loaded baked potato and asparagus.', price: 30.99 },
-      { name: 'T-Bone Steak', description: 'Large T-bone steak combining the flavors of strip and tenderloin, served with fries.', price: 35.99 },
-      { name: 'Porterhouse', description: 'Massive porterhouse steak for two, grilled and served with two sides of your choice.', price: 68.99 },
-      { name: 'Sirloin Steak', description: 'Juicy sirloin steak with peppercorn sauce, served with mashed potatoes and green beans.', price: 26.99 },
-      { name: 'Steak Frites', description: 'Tender steak served with crispy French fries and garlic aioli.', price: 28.99 },
-      { name: 'Surf & Turf', description: 'Filet mignon paired with a lobster tail, served with drawn butter and two sides.', price: 42.99 },
-      { name: 'Ribeye Sandwich', description: 'Sliced ribeye on a toasted roll with caramelized onions and horseradish aioli.', price: 18.99 },
-      { name: 'Steak Salad', description: 'Grilled sirloin strips over mixed greens with blue cheese, tomatoes, and red wine vinaigrette.', price: 22.99 }
+    "name": "Fripturi",
+    "products": [
+      {
+        "name": "Friptură Ribeye",
+        "description": "Friptură prime ribeye grătate la preferința ta, servită cu piure de cartofi cu usturoi și legume de sezon.",
+        "price": 32.99
+      },
+      {
+        "name": "Filet Mignon",
+        "description": "File mignon fraged, gătit la perfecție, servit cu cartofi copți și sos béarnaise.",
+        "price": 34.99
+      },
+      {
+        "name": "New York Strip",
+        "description": "Friptură strip bine marmorată, grătită și servită cu cartof copt încărcat și sparanghel.",
+        "price": 30.99
+      },
+      {
+        "name": "Friptură T-Bone",
+        "description": "Friptură mare T-bone care combină aromele strip-ului și fileului, servită cu cartofi prăjiți.",
+        "price": 35.99
+      },
+      {
+        "name": "Porterhouse",
+        "description": "Friptură masivă porterhouse pentru doi, grătită și servită cu două garnituri la alegere.",
+        "price": 68.99
+      },
+      {
+        "name": "Friptură Sirloin",
+        "description": "Friptură suculentă de sirloin cu sos piper verde, servită cu piure de cartofi și fasole verde.",
+        "price": 26.99
+      },
+      {
+        "name": "Steak Frites",
+        "description": "Friptură fragedă servită cu cartofi prăjiți crocanți francesi și aioli de usturoi.",
+        "price": 28.99
+      },
+      {
+        "name": "Surf & Turf",
+        "description": "File mignon însoțit de o coadă de homar, servit cu unt topit și două garnituri.",
+        "price": 42.99
+      },
+      {
+        "name": "Sandviș cu Ribeye",
+        "description": "Friptură de ribeye feliată pe o chiflă prăjită cu ceapă caramelizată și aioli de hrean.",
+        "price": 18.99
+      },
+      {
+        "name": "Salată cu Friptură",
+        "description": "Fâșii de sirloin la grătar peste frunze verzi mixte cu brânză cu mucegai, roșii și vinegretă de vin roșu.",
+        "price": 22.99
+      }
     ]
   },
   {
-    name: 'Desserts',
-    products: [
-      { name: 'Chocolate Lava Cake', description: 'Warm chocolate cake with a molten center, served with vanilla ice cream and fresh berries.', price: 9.99 },
-      { name: 'New York Cheesecake', description: 'Creamy classic cheesecake with a graham cracker crust, topped with your choice of berry compote.', price: 8.99 },
-      { name: 'Tiramisu', description: 'Traditional Italian dessert with layers of coffee-soaked ladyfingers and mascarpone cream.', price: 9.99 },
-      { name: 'Apple Pie', description: 'Homemade apple pie with a flaky crust, served warm with vanilla ice cream and caramel drizzle.', price: 7.99 },
-      { name: 'Brownie Sundae', description: 'Warm fudge brownie topped with vanilla ice cream, hot fudge, whipped cream, and a cherry.', price: 8.99 },
-      { name: 'Crème Brûlée', description: 'Classic French custard with a caramelized sugar top, served with fresh berries.', price: 9.99 },
-      { name: 'Key Lime Pie', description: 'Tangy key lime pie with a graham cracker crust and whipped cream topping.', price: 7.99 },
-      { name: 'Ice Cream Sampler', description: 'Three scoops of house-made ice cream with your choice of flavors and toppings.', price: 8.99 },
-      { name: 'Chocolate Chip Cookies', description: 'Warm, gooey chocolate chip cookies served with a glass of cold milk.', price: 6.99 },
-      { name: 'Bread Pudding', description: 'Warm bread pudding with vanilla sauce and a sprinkle of cinnamon.', price: 7.99 }
+    "name": "Deserturi",
+    "products": [
+      {
+        "name": "Prăjitură Cu Lava de Ciocolată",
+        "description": "Prăjitură caldă de ciocolată cu un centru topit, servită cu înghețată de vanilie și fructe de pădure proaspete.",
+        "price": 9.99
+      },
+      {
+        "name": "Cheesecake New York",
+        "description": "Cheesecake clasic cremos cu un blat de pesmet graham, acoperit cu compot de fructe de pădure la alegere.",
+        "price": 8.99
+      },
+      {
+        "name": "Tiramisu",
+        "description": "Desert italian tradițional cu straturi de pișcoturi înmuiate în cafea și cremă de mascarpone.",
+        "price": 9.99
+      },
+      {
+        "name": "Plăcintă cu Mere",
+        "description": "Plăcintă cu mere făcută în casă, cu o crustă foietaj, servită caldă cu înghețată de vanilie și un fir de caramel.",
+        "price": 7.99
+      },
+      {
+        "name": "Sundae Brownie",
+        "description": "Brownie cald de ciocolată acoperit cu înghețată de vanilie, sos de ciocolată cald, frișcă și o cireașă.",
+        "price": 8.99
+      },
+      {
+        "name": "Crème Brûlée",
+        "description": "Crema clasică franceză cu o crustă de zahăr caramelizat, servită cu fructe de pădure proaspete.",
+        "price": 9.99
+      },
+      {
+        "name": "Plăcintă Key Lime",
+        "description": "Plăcintă acidulată Key Lime cu un blat de pesmet graham și topping de frișcă.",
+        "price": 7.99
+      },
+      {
+        "name": "Mostră de Înghețată",
+        "description": "Trei bulgări de înghețată făcută în casă, cu aromele și toppingurile tale preferate.",
+        "price": 8.99
+      },
+      {
+        "name": "Fursecuri cu Fulgi de Ciocolată",
+        "description": "Fursecuri calde și vâscoase cu fulgi de ciocolată, servite cu un pahar de lapte rece.",
+        "price": 6.99
+      },
+      {
+        "name": "Pudding de Pâine",
+        "description": "Pudding cald de pâine cu sos de vanilie și un strop de scorțișoară.",
+        "price": 7.99
+      }
     ]
   },
   {
-    name: 'Beverages',
-    products: [
-      { name: 'Fresh Lemonade', description: 'House-made lemonade with fresh squeezed lemons, served over ice with a lemon wedge.', price: 4.99 },
-      { name: 'Iced Tea', description: 'Freshly brewed iced tea, sweetened or unsweetened, served with lemon.', price: 3.99 },
-      { name: 'Fresh Orange Juice', description: 'Freshly squeezed orange juice, served chilled.', price: 5.99 },
-      { name: 'Soda', description: 'Assorted soft drinks including cola, lemon-lime, and root beer.', price: 2.99 },
-      { name: 'Sparkling Water', description: 'Refreshing sparkling water with a slice of lemon or lime.', price: 3.99 },
-      { name: 'Coffee', description: 'Freshly brewed coffee, served hot with cream and sugar on the side.', price: 3.49 },
-      { name: 'Cappuccino', description: 'Espresso with steamed milk and a layer of foam, dusted with cocoa.', price: 4.99 },
-      { name: 'Latte', description: 'Espresso with steamed milk, available in various flavors like vanilla, caramel, or hazelnut.', price: 5.49 },
-      { name: 'Milkshake', description: 'Thick and creamy milkshake available in chocolate, vanilla, or strawberry.', price: 6.99 },
-      { name: 'Smoothie', description: 'Blended fruit smoothie with your choice of strawberries, bananas, or mixed berries.', price: 6.99 }
+    "name": "Băuturi",
+    "products": [
+      {
+        "name": "Limonadă Proaspătă",
+        "description": "Limonadă făcută în casă cu lămâi proaspăt stoarse, servită pe gheață cu o felie de lămâie.",
+        "price": 4.99
+      },
+      {
+        "name": "Ceai Rece",
+        "description": "Ceai negru proaspăt preparat, îndulcit sau neîndulcit, servit cu lămâie.",
+        "price": 3.99
+      },
+      {
+        "name": "Suc de Portocale Proaspăt",
+        "description": "Suc de portocale proaspăt stors, servit răcorit.",
+        "price": 5.99
+      },
+      {
+        "name": "Suc",
+        "description": "Băuturi răcoritoare variate, inclusiv cola, limonadă și root beer.",
+        "price": 2.99
+      },
+      {
+        "name": "Apă Minerală",
+        "description": "Apă minerală răcoritoare cu o felie de lămâie sau lime.",
+        "price": 3.99
+      },
+      {
+        "name": "Cafea",
+        "description": "Cafea proaspăt preparată, servită fierbinte cu smântână și zahăr separat.",
+        "price": 3.49
+      },
+      {
+        "name": "Cappuccino",
+        "description": "Espresso cu lapte aburit și un strat de spumă, presărat cu cacao.",
+        "price": 4.99
+      },
+      {
+        "name": "Latte",
+        "description": "Espresso cu lapte aburit, disponibil în diverse arome precum vanilie, caramel sau alune.",
+        "price": 5.49
+      },
+      {
+        "name": "Milkshake",
+        "description": "Milkshake gros și cremos disponibil în arome de ciocolată, vanilie sau căpșuni.",
+        "price": 6.99
+      },
+      {
+        "name": "Smoothie",
+        "description": "Smoothie de fructe mixate cu alegerea ta între căpșuni, banane sau fructe de pădure mixte.",
+        "price": 6.99
+      }
     ]
   },
   {
-    name: 'Sides',
-    products: [
-      { name: 'French Fries', description: 'Crispy golden fries seasoned with sea salt, served with ketchup.', price: 4.99 },
-      { name: 'Sweet Potato Fries', description: 'Crispy sweet potato fries with a hint of cinnamon, served with chipotle aioli.', price: 5.99 },
-      { name: 'Onion Rings', description: 'Thick-cut onion rings battered and fried until golden and crispy.', price: 5.99 },
-      { name: 'Mashed Potatoes', description: 'Creamy mashed potatoes with butter and herbs.', price: 4.99 },
-      { name: 'Mac & Cheese', description: 'Creamy macaroni and cheese with a blend of cheeses and breadcrumb topping.', price: 5.99 },
-      { name: 'Coleslaw', description: 'Fresh cabbage slaw with a tangy mayonnaise-based dressing.', price: 3.99 },
-      { name: 'Garlic Bread', description: 'Toasted bread brushed with garlic butter and herbs.', price: 4.99 },
-      { name: 'Rice Pilaf', description: 'Fluffy rice cooked with vegetables and herbs.', price: 4.99 },
-      { name: 'Steamed Vegetables', description: 'Seasonal vegetables steamed to perfection with a touch of butter.', price: 5.99 },
-      { name: 'Baked Beans', description: 'Slow-cooked baked beans with bacon and brown sugar.', price: 4.99 }
+    "name": "Garnituri",
+    "products": [
+      {
+        "name": "Cartofi Prăjiți",
+        "description": "Cartofi prăjiți crocanți aurii, condimentați cu sare de mare, serviți cu ketchup.",
+        "price": 4.99
+      },
+      {
+        "name": "Cartofi Dulci Prăjiți",
+        "description": "Cartofi dulci prăjiți crocanți cu un indiciu de scorțișoară, serviți cu aioli de chipotle.",
+        "price": 5.99
+      },
+      {
+        "name": "Inele de Ceapă",
+        "description": "Inele groase de ceapă, pane și fripte până devin aurii și crocante.",
+        "price": 5.99
+      },
+      {
+        "name": "Piure de Cartofi",
+        "description": "Piure cremos de cartofi cu unt și ierburi.",
+        "price": 4.99
+      },
+      {
+        "name": "Mac & Cheese",
+        "description": "Macaroane și brânză cremoasă cu un amestec de brânzeturi și topping de pesmet.",
+        "price": 5.99
+      },
+      {
+        "name": "Salată de Varză",
+        "description": "Salată proaspătă de varză cu un dressing tangos pe bază de maioneză.",
+        "price": 3.99
+      },
+      {
+        "name": "Pâine cu Usturoi",
+        "description": "Pâine prăjită unsă cu unt de usturoi și ierburi.",
+        "price": 4.99
+      },
+      {
+        "name": "Pilaf de Orez",
+        "description": "Orez pufos gătit cu legume și ierburi.",
+        "price": 4.99
+      },
+      {
+        "name": "Legume Fierte",
+        "description": "Legume de sezon fierte la perfecție cu un strop de unt.",
+        "price": 5.99
+      },
+      {
+        "name": "Fasole la Cuptor",
+        "description": "Fasole gătită încet la cuptor cu bacon și zahăr brun.",
+        "price": 4.99
+      }
     ]
   }
 ]
@@ -179,11 +581,11 @@ const categoryData = [
 async function main() {
   // Check if demo already exists
   const existing = await prisma.restaurant.findUnique({ 
-    where: { slug: 'demo' },
+    where: { slug: 'belvedere' },
     include: { categories: { include: { products: true } } }
   })
   if (existing) {
-    console.log('Demo restaurant already exists. Deleting and recreating...')
+    console.log('Restaurant Belvedere already exists. Deleting and recreating...')
     // Delete order items first (they reference products)
     const orders = await prisma.order.findMany({ where: { restaurantId: existing.id } })
     for (const order of orders) {
@@ -225,11 +627,10 @@ async function main() {
     // Delete tables
     await prisma.table.deleteMany({ where: { restaurantId: existing.id } })
     // Finally delete restaurant
-    await prisma.restaurant.delete({ where: { slug: 'demo' } })
+    await prisma.restaurant.delete({ where: { slug: 'belvedere' } })
   }
 
   // 1. Create Restaurant
-  const adminPassword = await bcrypt.hash('password', 10)
   const restaurant = await prisma.restaurant.create({
     data: {
       name: 'Restaurant Belvedere',
@@ -311,7 +712,10 @@ async function main() {
           price: productInfo.price,
           allergens: JSON.stringify(allergens),
           restaurantId: restaurant.id,
-          categoryId: category.id
+          categoryId: category.id,
+          images: {
+            create: [{ url: DEFAULT_PRODUCT_IMAGE_URL, type: 'image' }]
+          }
         }
       })
     }
@@ -324,8 +728,10 @@ async function main() {
   console.log(`   Categories: ${categoryData.length}`)
   console.log(`   Products: ${categoryData.length * 10}`)
   console.log('\n📋 Login Credentials:')
-  console.log(`   Super Admin: superadmin@demo.com / admin123`)
-  console.log(`   Restaurant Admin: admin@demo.com / password`)
+  console.log(`   Super Admin: super@gmail.com / PParolamea00`)
+  console.log(`   Restaurant Admin: admin@gmail.com / password`)
+  console.log(`   Kitchen: kitchen@gmail.com / password`)
+  console.log(`   Waiter: waiter@gmail.com / password`)
 }
 
 main()
