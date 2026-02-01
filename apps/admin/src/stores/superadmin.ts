@@ -81,6 +81,18 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
     }
   }
 
+  async function fetchUsersByRestaurant(restaurantId: string) {
+    try {
+      const response = await axios.get(`${API_URL}/superadmin/restaurants/${restaurantId}/users`)
+      if (response.data.success) {
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Failed to fetch restaurant users', error)
+      throw error
+    }
+  }
+
   async function createUser(userData: any) {
     isSaving.value = true
     try {
@@ -153,6 +165,7 @@ export const useSuperAdminStore = defineStore('superadmin', () => {
     createRestaurant,
     updateRestaurant,
     fetchUsers,
+    fetchUsersByRestaurant,
     createUser,
     updateUser,
     deleteUser,

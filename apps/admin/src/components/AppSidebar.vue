@@ -35,7 +35,7 @@ const allNavItems = [
   { name: 'Orders', path: '/orders', icon: Table, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'KITCHEN'] },
   { name: 'Kitchen', path: '/kitchen', icon: ChefHat, external: true, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'KITCHEN'] },
   { name: 'Server', path: '/server', icon: Receipt, badge: pendingReviewOrdersCount, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'SERVER'] },
-  { name: 'Tables', path: '/tables', icon: QrCode, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
+  { name: 'Tables', path: '/tables', icon: QrCode, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'SERVER'] },
   { name: 'Staff', path: '/staff', icon: Users, roles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] }
 ]
 

@@ -288,10 +288,9 @@ function copyQRUrl() {
           </Select>
           <Select v-model="newTableCategoryId">
             <SelectTrigger class="w-40">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="No Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No Category</SelectItem>
               <SelectItem v-for="category in tablesStore.categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </SelectItem>
@@ -424,10 +423,9 @@ function copyQRUrl() {
                         </Select>
                         <Select v-model="editingTableCategoryId">
                           <SelectTrigger class="w-32">
-                            <SelectValue placeholder="Category" />
+                            <SelectValue placeholder="No Category" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">No Category</SelectItem>
                             <SelectItem v-for="cat in tablesStore.categories" :key="cat.id" :value="cat.id">
                               {{ cat.name }}
                             </SelectItem>

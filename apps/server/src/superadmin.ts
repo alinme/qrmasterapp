@@ -263,6 +263,38 @@ router.get('/restaurants/:id', authenticateToken, requireSuperAdmin, async (req:
   }
 });
 
+// Get users by restaurant (Super Admin only)
+router.get('/restaurants/:id/users', authenticateToken, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const restaurant = await prisma.restaurant.findUnique({ where: { id } });
+    if (!restaurant) {
+      return res.status(404).json({ success: false, error: 'Restaurant not found' });
+    }
+    
+    const users = await prisma.user.findMany({
+      where: {
+        restaurantId: id,
+        role: { not: 'SUPER_ADMIN' }
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    res.json({ success: true, data: users });
+  } catch (error) {
+    console.error('Get restaurant users error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch restaurant users' });
+  }
+});
+
 // Get all users (Super Admin only)
 router.get('/users', authenticateToken, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
   try {

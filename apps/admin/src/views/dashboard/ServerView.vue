@@ -644,31 +644,6 @@ function getTableStatusBorderColor(status: string) {
   }
 }
 
-function getChairPosition(index: number, chairCount: number, tableForm: string | null) {
-  const numChairs = Math.min(chairCount || 4, 12)
-  const angle = (index * 2 * Math.PI) / numChairs
-  
-  // Calculate table dimensions in pixels
-  // Square/Round: 64px (w-16 = 4rem = 64px), Oval/Rectangular: 80px (w-20 = 5rem = 80px)
-  const tableWidth = (tableForm === 'oval' || tableForm === 'rectangular' || !tableForm) ? 80 : 64
-  const tableHeight = (tableForm === 'oval' || tableForm === 'rectangular' || !tableForm) ? 48 : 64
-  
-  // Use the larger dimension for radius calculation to ensure chairs are outside all table shapes
-  const tableRadius = Math.max(tableWidth, tableHeight) / 2
-  
-  // Add padding: chair is 12px (w-3), add 10px gap = 22px total offset
-  const radius = tableRadius + 22
-  
-  // Calculate position using transform for perfect centering
-  const x = radius * Math.cos(angle)
-  const y = radius * Math.sin(angle)
-  
-  return {
-    transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
-    left: '50%',
-    top: '50%'
-  }
-}
 
 async function setTableReady(tableId: string) {
   try {
@@ -1078,248 +1053,137 @@ async function handleViewBillRequest(request: any) {
     </div>
 
     <!-- Tables Grouped by Category -->
-    <div v-else class="space-y-8">
+    <div v-else class="space-y-4">
       <div v-for="category in tablesByCategory" :key="category.id">
         <!-- Category Header -->
-        <div class="mb-4">
-          <h3 class="text-xl font-bold text-foreground border-b-2 border-primary pb-2">
+        <div class="mb-2">
+          <h3 class="text-base font-bold text-foreground border-b border-primary pb-1 flex items-center gap-2">
             {{ category.name }}
-            <span class="text-sm font-normal text-muted-foreground ml-2">
-              ({{ category.tables.length }} {{ category.tables.length === 1 ? 'table' : 'tables' }})
-            </span>
+            <Badge variant="secondary" class="text-xs">{{ category.tables.length }}</Badge>
           </h3>
         </div>
         
-        <!-- Tables Grid -->
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        <!-- Tables Grid - Compact -->
+        <div class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
           <Card
             v-for="table in category.tables"
             :key="table.id"
-        class="overflow-visible relative border-2 transition-shadow cursor-pointer hover:shadow-lg"
-          :class="[
-          getTableStatusColor(table.status),
-          getTableStatusBorderColor(table.status),
-          {
-            'ring-4 ring-green-500 ring-opacity-75 animate-pulse': flashingTableIds.has(table.id),
-            'ring-4 ring-yellow-500 ring-opacity-50': table.hasReadyOrders && !flashingTableIds.has(table.id),
-            'ring-4 ring-purple-500 ring-opacity-75 animate-pulse': flashingReviewTableIds.has(table.id),
-            'ring-4 ring-purple-500 ring-opacity-50': table.hasPendingReviews && !flashingReviewTableIds.has(table.id) && !flashingTableIds.has(table.id),
-            'opacity-60': table.isOwnedByOther,
-            'border-gray-300': table.isOwnedByOther
-          }
-        ]"
-        @click="table.isOwnedByOther ? null : openBillDialog(table)"
-      >
-        <!-- Animated notification ring -->
-        <div 
-          v-if="table.hasReadyOrders"
-          class="absolute -inset-2 z-0 rounded-lg pointer-events-none"
-          :class="{
-            'animate-ping': flashingTableIds.has(table.id)
-          }"
-        >
-          <div 
-            class="absolute inset-0 rounded-lg"
-            :style="{
-              boxShadow: flashingTableIds.has(table.id)
-                ? '0 0 0 4px rgba(34, 197, 94, 0.5), 0 0 0 8px rgba(34, 197, 94, 0.3), 0 0 0 12px rgba(34, 197, 94, 0.1)'
-                : '0 0 0 4px rgba(234, 179, 8, 0.4), 0 0 0 8px rgba(234, 179, 8, 0.2), 0 0 0 12px rgba(234, 179, 8, 0.1)'
-            }"
-          ></div>
-        </div>
-        
-        <CardHeader>
-          <CardTitle class="flex justify-between items-center">
-            <div class="flex flex-wrap gap-2 items-center">
-              <span>{{ table.name }}</span>
-              <Badge 
-                :class="{
-                  'bg-gray-500': table.status === 'AVAILABLE',
-                  'bg-yellow-500': table.status === 'BUSY',
-                  'bg-orange-500': table.status === 'BILL_REQUESTED',
-                  'bg-green-500': table.status === 'READY'
-                }"
-                class="flex gap-1 items-center"
-                :title="table.status === 'AVAILABLE' ? 'Disponibilă' : 
-                   table.status === 'BUSY' ? 'Ocupată' : 
-                   table.status === 'BILL_REQUESTED' ? 'Notă Cerută' : 
-                   'Gata'"
-              >
-                <Circle v-if="table.status === 'AVAILABLE'" class="w-3 h-3" />
-                <Clock v-else-if="table.status === 'BUSY'" class="w-3 h-3" />
-                <Receipt v-else-if="table.status === 'BILL_REQUESTED'" class="w-3 h-3" />
-                <CheckCircle v-else-if="table.status === 'READY'" class="w-3 h-3" />
-              </Badge>
-              <Badge 
-                v-if="table.isOwnedByMe" 
-                variant="default" 
-                class="flex gap-1 items-center bg-blue-600"
-                title="Mea"
-              >
-                <User class="w-3 h-3" />
-              </Badge>
-              <Badge 
-                v-else-if="table.isFree" 
-                variant="outline" 
-                class="flex gap-1 items-center text-gray-600 border-gray-400"
-                title="Liberă"
-              >
-                <UserX class="w-3 h-3" />
-              </Badge>
-              <Badge 
-                v-else-if="table.isOwnedByOther" 
-                variant="outline" 
-                class="flex gap-1 items-center text-orange-600 border-orange-400"
-                :title="table.serverEmail ? table.serverEmail.split('@')[0] : 'Alt server'"
-              >
-                <Users class="w-3 h-3" />
-              </Badge>
+            class="overflow-visible relative border transition-shadow cursor-pointer hover:shadow-md p-0"
+            :class="[
+              getTableStatusColor(table.status),
+              getTableStatusBorderColor(table.status),
+              {
+                'ring-2 ring-green-500 ring-opacity-75 animate-pulse': flashingTableIds.has(table.id),
+                'ring-2 ring-yellow-500 ring-opacity-50': table.hasReadyOrders && !flashingTableIds.has(table.id),
+                'ring-2 ring-purple-500 ring-opacity-75 animate-pulse': flashingReviewTableIds.has(table.id),
+                'ring-2 ring-purple-500 ring-opacity-50': table.hasPendingReviews && !flashingReviewTableIds.has(table.id) && !flashingTableIds.has(table.id),
+                'opacity-60': table.isOwnedByOther
+              }
+            ]"
+            @click="table.isOwnedByOther ? null : openBillDialog(table)"
+          >
+            <div class="p-2">
+              <!-- Header Row: Table Name + Status -->
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-bold truncate">{{ table.name }}</span>
+                <div class="flex gap-1 items-center">
+                  <!-- Status icon -->
+                  <Circle v-if="table.status === 'AVAILABLE'" class="w-3 h-3 text-gray-500" />
+                  <Clock v-else-if="table.status === 'BUSY'" class="w-3 h-3 text-yellow-500" />
+                  <Receipt v-else-if="table.status === 'BILL_REQUESTED'" class="w-3 h-3 text-orange-500" />
+                  <CheckCircle v-else-if="table.status === 'READY'" class="w-3 h-3 text-green-500" />
+                  <!-- Ownership icon -->
+                  <User v-if="table.isOwnedByMe" class="w-3 h-3 text-blue-600" />
+                  <UserX v-else-if="table.isFree" class="w-3 h-3 text-gray-400" />
+                  <Users v-else-if="table.isOwnedByOther" class="w-3 h-3 text-orange-500" />
+                </div>
+              </div>
+              
+              <!-- Badges Row -->
+              <div class="flex gap-1 mb-1 flex-wrap" v-if="table.pendingReviewCount > 0 || table.readyOrderCount > 0 || table.orderCount > 0">
+                <Badge v-if="table.pendingReviewCount > 0" class="text-[10px] px-1 py-0 bg-purple-600">
+                  <Bell class="w-2 h-2 mr-0.5" />{{ table.pendingReviewCount }}
+                </Badge>
+                <Badge v-if="table.readyOrderCount > 0" class="text-[10px] px-1 py-0 bg-green-600">
+                  <CheckCircle class="w-2 h-2 mr-0.5" />{{ table.readyOrderCount }}
+                </Badge>
+                <Badge v-if="table.orderCount > 0" class="text-[10px] px-1 py-0">
+                  <Package class="w-2 h-2 mr-0.5" />{{ table.orderCount }}
+                </Badge>
+              </div>
+              
+              <!-- Bill Summary - Compact -->
+              <div class="text-[11px] space-y-0.5 border-t pt-1">
+                <div class="flex justify-between">
+                  <span class="text-muted-foreground">Total:</span>
+                  <span class="font-semibold">{{ table.totalBill.toFixed(0) }}</span>
+                </div>
+                <div class="flex justify-between font-bold">
+                  <span>Rest:</span>
+                  <span :class="table.remainingAmount > 0 ? 'text-orange-600' : 'text-green-600'">
+                    {{ table.remainingAmount.toFixed(0) }}
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Quick Action Buttons - Minimal -->
+              <div class="flex flex-wrap gap-1 mt-1" v-if="(table.isOwnedByMe || table.isFree || table.isOwnedByOther) && (table.hasPendingReviews || table.hasReadyOrders || table.isFree || table.isOwnedByOther || showTableActions)">
+                <Button
+                  v-if="table.hasPendingReviews"
+                  size="sm"
+                  @click.stop="openReviewDialog(table.pendingReviewOrders[0])"
+                  class="text-[10px] h-6 px-1 text-white bg-purple-600 hover:bg-purple-700"
+                >
+                  <Eye class="w-3 h-3" />
+                </Button>
+                <Button
+                  v-if="table.hasReadyOrders"
+                  size="sm"
+                  @click.stop="markAllReadyAsServed(table)"
+                  class="text-[10px] h-6 px-1 text-white bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle class="w-3 h-3" />
+                </Button>
+                <Button
+                  v-if="table.isFree || table.isOwnedByOther"
+                  size="sm"
+                  @click.stop="handleAssignTable(table.id)"
+                  class="text-[10px] h-6 px-1 text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  <UserPlus class="w-3 h-3" />
+                </Button>
+                <!-- Extended actions when toggle is on -->
+                <template v-if="showTableActions && (table.isOwnedByMe || table.isFree)">
+                  <Button
+                    v-if="table.status === 'BUSY' || table.status === 'BILL_REQUESTED'"
+                    size="sm"
+                    @click.stop="setTableReady(table.id)"
+                    class="text-[10px] h-6 px-1 bg-green-100 hover:bg-green-200 text-green-700"
+                  >
+                    <CheckCircle class="w-3 h-3" />
+                  </Button>
+                  <Button
+                    v-if="table.status !== 'AVAILABLE'"
+                    size="sm"
+                    @click.stop="resetTable(table.id)"
+                    class="text-[10px] h-6 px-1"
+                    variant="outline"
+                  >
+                    <RefreshCw class="w-3 h-3" />
+                  </Button>
+                  <Button
+                    v-if="table.isOwnedByMe"
+                    size="sm"
+                    @click.stop="handleReleaseTable(table.id)"
+                    class="text-[10px] h-6 px-1 text-blue-600"
+                    variant="outline"
+                  >
+                    <UserMinus class="w-3 h-3" />
+                  </Button>
+                </template>
+              </div>
             </div>
-            <div class="flex gap-2">
-              <Badge v-if="table.pendingReviewCount > 0" variant="default" class="flex gap-1 items-center bg-purple-600" :title="`${table.pendingReviewCount} Review`">
-                <Bell class="w-3 h-3" />
-                <span>{{ table.pendingReviewCount }}</span>
-              </Badge>
-              <Badge v-if="table.readyOrderCount > 0" variant="default" class="flex gap-1 items-center bg-green-600" :title="`${table.readyOrderCount} Ready`">
-                <CheckCircle class="w-3 h-3" />
-                <span>{{ table.readyOrderCount }}</span>
-              </Badge>
-              <Badge v-if="table.orderCount > 0" variant="default" class="flex gap-1 items-center" :title="`${table.orderCount} ${table.orderCount === 1 ? 'order' : 'orders'}`">
-                <Package class="w-3 h-3" />
-                <span>{{ table.orderCount }}</span>
-              </Badge>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent class="space-y-3">
-          <!-- Table Actions -->
-          <div class="flex flex-wrap gap-2 justify-end">
-            <!-- Quick Actions (always visible) -->
-            <Button
-              v-if="(table.isOwnedByMe || table.isFree) && table.hasPendingReviews"
-              size="sm"
-              @click.stop="openReviewDialog(table.pendingReviewOrders[0])"
-              class="text-xs text-white bg-purple-600 hover:bg-purple-700"
-            >
-              <Eye class="mr-1 w-3 h-3" />
-              Revizuiește ({{ table.pendingReviewCount }})
-            </Button>
-            <Button
-              v-if="(table.isOwnedByMe || table.isFree) && (table.status === 'BILL_REQUESTED' || table.status === 'BUSY')"
-              variant="outline"
-              size="sm"
-              @click.stop="setTableReady(table.id)"
-              class="text-xs bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30"
-            >
-              <CheckCircle class="mr-1 w-3 h-3" />
-              Setează Gata
-            </Button>
-            <!-- BUGFIX #5: Mark as Served button directly in table list -->
-            <Button
-              v-if="(table.isOwnedByMe || table.isFree) && table.hasReadyOrders"
-              size="sm"
-              @click.stop="markAllReadyAsServed(table)"
-              class="text-xs text-white bg-green-600 hover:bg-green-700"
-            >
-              <CheckCircle class="mr-1 w-3 h-3" />
-              Servit ({{ table.readyOrderCount }})
-            </Button>
-            <!-- BUGFIX #13: Reset table button shown after all orders are served -->
-            <Button
-              v-if="(table.isOwnedByMe || table.isFree) && table.status === 'READY' && !table.hasReadyOrders && table.remainingAmount <= 0"
-              variant="outline"
-              size="sm"
-              @click.stop="resetTable(table.id)"
-              class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-400"
-            >
-              <RefreshCw class="mr-1 w-3 h-3" />
-              Resetează Masă
-            </Button>
-            <!-- BUGFIX #12: Preia Masă button always visible when table is free or owned by other -->
-            <Button
-              v-if="table.isFree || table.isOwnedByOther"
-              size="sm"
-              @click.stop="handleAssignTable(table.id)"
-              class="text-xs text-white bg-blue-600 hover:bg-blue-700"
-            >
-              <UserPlus class="mr-1 w-3 h-3" />
-              {{ table.isFree ? 'Preia Masă' : 'Preia de la ' + (table.serverEmail?.split('@')[0] || 'alt server') }}
-            </Button>
-            
-            <!-- Hidden Actions (shown when global toggle is on) -->
-            <template v-if="showTableActions">
-              <!-- Ownership Actions -->
-              <Button
-                v-if="table.isOwnedByMe"
-                size="sm"
-                variant="outline"
-                @click.stop="handleReleaseTable(table.id)"
-                class="text-xs text-blue-600 border-blue-400 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400"
-              >
-                <UserMinus class="mr-1 w-3 h-3" />
-                Eliberează
-              </Button>
-              <Button
-                v-if="(table.isOwnedByMe || table.isFree) && table.status !== 'AVAILABLE'"
-                variant="outline"
-                size="sm"
-                @click.stop="resetTable(table.id)"
-                class="text-xs"
-              >
-                <RefreshCw class="mr-1 w-3 h-3" />
-                Resetează Masă
-              </Button>
-            </template>
-          </div>
-          
-          <!-- Table Visual Representation -->
-          <div class="flex overflow-hidden relative justify-center items-center h-40 rounded-lg" >
-            <!-- Table Shape -->
-            <div 
-              :class="{
-                'w-16 h-16 rounded-lg': table.form === 'square',
-                'w-16 h-16 rounded-full': table.form === 'round',
-                'w-20 h-12 rounded-full': table.form === 'oval',
-                'w-20 h-12 rounded-lg': table.form === 'rectangular' || !table.form
-              }"
-              class="flex relative z-10 justify-center items-center border-2 shadow-lg bg-primary/30 border-primary"
-            >
-              <span class="text-xs font-bold text-primary-foreground">{{ table.name }}</span>
-            </div>
-            <!-- Chairs around table -->
-            <div v-if="table.chairs" class="flex absolute inset-0 justify-center items-center">
-              <template v-for="(_, index) in Array.from({ length: Math.min(table.chairs || 4, 12) })" :key="index">
-                <div 
-                  class="absolute w-3 h-3 rounded-full border bg-primary/60 border-primary"
-                  :style="getChairPosition(index, table.chairs, table.form)"
-                ></div>
-              </template>
-            </div>
-          </div>
-          
-          <!-- Bill Info -->
-          <div class="pt-2 space-y-2 border-t">
-            <div class="flex justify-between text-sm">
-              <span class="text-muted-foreground">Total:</span>
-              <span class="font-semibold">{{ table.totalBill.toFixed(2) }} RON</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-muted-foreground">Paid:</span>
-              <span class="text-green-600">{{ table.paidAmount.toFixed(2) }} RON</span>
-            </div>
-            <div v-if="table.totalTips > 0" class="flex justify-between text-sm">
-              <span class="text-muted-foreground">Tips:</span>
-              <span class="text-blue-600">+{{ table.totalTips.toFixed(2) }} RON</span>
-            </div>
-            <div class="flex justify-between pt-1 text-sm font-bold border-t">
-              <span>Remaining:</span>
-              <span :class="table.remainingAmount > 0 ? 'text-orange-600' : 'text-green-600'">
-                {{ table.remainingAmount.toFixed(2) }} RON
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </Card>
         </div>
       </div>
     </div>
