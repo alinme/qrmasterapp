@@ -7,13 +7,20 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 
-const email = ref('admin@demo.com')
+const email = ref('admin@gmail.com')
 const password = ref('password')
 const error = ref('')
 const loading = ref(false)
 
 const auth = useAuthStore()
 const router = useRouter()
+
+const demoUsers = [
+  { email: 'super@gmail.com', password: 'PParolamea00', role: 'Super Admin', description: 'Full system access' },
+  { email: 'admin@gmail.com', password: 'password', role: 'Restaurant Admin', description: 'Restaurant management' },
+  { email: 'kitchen@gmail.com', password: 'password', role: 'Kitchen', description: 'Kitchen orders view' },
+  { email: 'waiter@gmail.com', password: 'password', role: 'Server', description: 'Table management' }
+]
 
 async function handleLogin() {
   error.value = ''
@@ -28,6 +35,12 @@ async function handleLogin() {
   }
   
   loading.value = false
+}
+
+async function quickLogin(userEmail: string, userPassword: string) {
+  email.value = userEmail
+  password.value = userPassword
+  await handleLogin()
 }
 </script>
 
@@ -55,8 +68,30 @@ async function handleLogin() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter class="justify-center text-sm text-muted-foreground">
-        Demo: admin@demo.com / password
+      <CardFooter class="flex-col gap-4">
+        <div class="w-full">
+          <p class="text-sm font-medium text-muted-foreground mb-3">Quick Login as Demo User:</p>
+          <div class="space-y-2">
+            <button
+              v-for="user in demoUsers"
+              :key="user.email"
+              type="button"
+              @click="quickLogin(user.email, user.password)"
+              :disabled="loading"
+              class="w-full text-left px-3 py-2 rounded-md border border-border hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium">{{ user.role }}</p>
+                  <p class="text-xs text-muted-foreground">{{ user.email }}</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
       </CardFooter>
     </Card>
   </div>
