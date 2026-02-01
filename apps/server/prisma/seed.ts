@@ -232,23 +232,40 @@ async function main() {
   const adminPassword = await bcrypt.hash('password', 10)
   const restaurant = await prisma.restaurant.create({
     data: {
-      name: 'Demo Restaurant',
-      slug: 'demo',
-      address: '123 Main Street, City, State 12345',
+      name: 'Restaurant Belvedere',
+      slug: 'belvedere',
+      address: 'Strada Belvedere, Cluj-Napoca, Romania',
+      logoUrl: 'https://placehold.co/400',
+      phoneNumber: '+40740123456',
+      contactPerson: 'Mihai Popescu',
+      contractStart: new Date(),
+      contractEnd: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
       users: {
-        create: {
-          email: 'admin@demo.com',
-          passwordHash: adminPassword, 
-          role: 'RESTAURANT_ADMIN'
-        }
-      },
-      tables: {
         create: [
-          { name: 'Table 1' },
-          { name: 'Table 2' },
-          { name: 'Table 3' },
-          { name: 'Table 4' },
-          { name: 'Table 5' }
+          {
+            email: 'admin@gmail.com',
+            passwordHash: await bcrypt.hash('password', 10), 
+            role: 'RESTAURANT_ADMIN'
+          },
+          {
+            email: 'kitchen@gmail.com',
+            passwordHash: await bcrypt.hash('password', 10), 
+            role: 'KITCHEN'
+          },
+          {
+            email: 'waiter@gmail.com',
+            passwordHash: await bcrypt.hash('password', 10), 
+            role: 'SERVER'
+          }
+        ]
+      },
+      tables: { 
+        create: [
+          { name: 'Masa 1' },
+          { name: 'Masa 2' },
+          { name: 'Masa 3' },
+          { name: 'Masa 4' },
+          { name: 'Masa 5' }
         ]
       }
     }

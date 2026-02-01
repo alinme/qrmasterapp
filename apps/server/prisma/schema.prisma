@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  //url      = env("DATABASE_URL")
 }
 
 // Tenant
@@ -137,7 +137,7 @@ model Table {
   id           String         @id @default(uuid())
   name         String
   chairs       Int?           @default(4) // Number of chairs/seats
-  form         String?        // Table form: "square", "round", "oval", "rectangular"
+  form         String?        @default("square") // Table form: "square", "round", "oval", "rectangular"
   status       String         @default("AVAILABLE") // AVAILABLE, BUSY, BILL_REQUESTED, READY
   qrTokenSeed  String? // Secret to sign tokens with (or just valid token)
   lastResetAt  DateTime?      // Timestamp when table was last reset - orders before this are hidden
