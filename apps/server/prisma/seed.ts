@@ -626,11 +626,13 @@ async function main() {
     }
     // Delete tables
     await prisma.table.deleteMany({ where: { restaurantId: existing.id } })
+    // Delete table categories
+    await prisma.tableCategory.deleteMany({ where: { restaurantId: existing.id } })
     // Finally delete restaurant
     await prisma.restaurant.delete({ where: { slug: 'belvedere' } })
   }
 
-  // 1. Create Restaurant
+  // 1. Create Restaurant with users (no tables yet - we'll add them after categories)
   const restaurant = await prisma.restaurant.create({
     data: {
       name: 'Restaurant Belvedere',
@@ -657,16 +659,12 @@ async function main() {
             email: 'waiter@gmail.com',
             passwordHash: await bcrypt.hash('password', 10), 
             role: 'SERVER'
+          },
+          {
+            email: 'waiter2@gmail.com',
+            passwordHash: await bcrypt.hash('password', 10), 
+            role: 'SERVER'
           }
-        ]
-      },
-      tables: { 
-        create: [
-          { name: 'Masa 1' },
-          { name: 'Masa 2' },
-          { name: 'Masa 3' },
-          { name: 'Masa 4' },
-          { name: 'Masa 5' }
         ]
       }
     }
@@ -674,7 +672,67 @@ async function main() {
 
   console.log('Created restaurant:', restaurant.name)
 
-  // 2. Create Super Admin user
+  // 2. Create Table Categories
+  const indoorsCategory = await prisma.tableCategory.create({
+    data: {
+      name: 'Indoors',
+      description: 'Indoor seating area',
+      sortOrder: 0,
+      restaurantId: restaurant.id
+    }
+  })
+
+  const terraceCategory = await prisma.tableCategory.create({
+    data: {
+      name: 'Terrace',
+      description: 'Outdoor terrace seating',
+      sortOrder: 1,
+      restaurantId: restaurant.id
+    }
+  })
+
+  const barCategory = await prisma.tableCategory.create({
+    data: {
+      name: 'Bar',
+      description: 'Bar counter seating',
+      sortOrder: 2,
+      restaurantId: restaurant.id
+    }
+  })
+
+  console.log('Created table categories: Indoors, Terrace, Bar')
+
+  // 3. Create Tables assigned to categories
+  const tablesData = [
+    // Indoors tables
+    { name: 'Table 1', categoryId: indoorsCategory.id, chairs: 4 },
+    { name: 'Table 2', categoryId: indoorsCategory.id, chairs: 4 },
+    { name: 'Table 3', categoryId: indoorsCategory.id, chairs: 6 },
+    { name: 'Table 4', categoryId: indoorsCategory.id, chairs: 2 },
+    // Terrace tables
+    { name: 'Table 5', categoryId: terraceCategory.id, chairs: 4 },
+    { name: 'Table 6', categoryId: terraceCategory.id, chairs: 4 },
+    { name: 'Table 7', categoryId: terraceCategory.id, chairs: 6 },
+    // Bar tables
+    { name: 'Bar 1', categoryId: barCategory.id, chairs: 2 },
+    { name: 'Bar 2', categoryId: barCategory.id, chairs: 2 },
+    { name: 'Bar 3', categoryId: barCategory.id, chairs: 2 }
+  ]
+
+  for (const tableData of tablesData) {
+    await prisma.table.create({
+      data: {
+        name: tableData.name,
+        chairs: tableData.chairs,
+        categoryId: tableData.categoryId,
+        restaurantId: restaurant.id
+      }
+    })
+  }
+
+  console.log(`Created ${tablesData.length} tables across categories`)
+
+  // 4. Create Super Admin user
   // Note: Super Admin still needs a restaurantId (schema requirement), so we use the demo restaurant as placeholder
   const superAdmin = await prisma.user.create({
     data: {
@@ -687,7 +745,7 @@ async function main() {
 
   console.log('Created Super Admin user:', superAdmin.email)
 
-  // 3. Create Categories and Products
+  // 5. Create Categories and Products
   for (let i = 0; i < categoryData.length; i++) {
     const categoryInfo = categoryData[i]
     const category = await prisma.category.create({

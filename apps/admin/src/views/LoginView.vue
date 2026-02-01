@@ -19,7 +19,8 @@ const demoUsers = [
   { email: 'super@gmail.com', password: 'PParolamea00', role: 'Super Admin', description: 'Full system access' },
   { email: 'admin@gmail.com', password: 'password', role: 'Restaurant Admin', description: 'Restaurant management' },
   { email: 'kitchen@gmail.com', password: 'password', role: 'Kitchen', description: 'Kitchen orders view' },
-  { email: 'waiter@gmail.com', password: 'password', role: 'Server', description: 'Table management' }
+  { email: 'waiter@gmail.com', password: 'password', role: 'Waiter 1', description: 'Table management' },
+  { email: 'waiter2@gmail.com', password: 'password', role: 'Waiter 2', description: 'Table management' }
 ]
 
 async function handleLogin() {

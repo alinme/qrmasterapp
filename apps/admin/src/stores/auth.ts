@@ -70,5 +70,78 @@ export const useAuthStore = defineStore('auth', () => {
     router.push('/login')
   }
 
-  return { token, user, isAuthenticated, login, register, logout }
+  async function impersonate(targetUserId: string) {
+    try {
+      const response = await axios.post(`${API_URL}/auth/impersonate`, { targetUserId })
+      if (response.data.success) {
+        // Store original user info before impersonating
+        const originalUser = { ...user.value }
+        localStorage.setItem('originalUser', JSON.stringify(originalUser))
+        localStorage.setItem('originalToken', token.value as string)
+        
+        // Update to impersonated user
+        token.value = response.data.data.token
+        user.value = response.data.data.user
+        
+        localStorage.setItem('token', token.value as string)
+        localStorage.setItem('user', JSON.stringify(user.value))
+        
+        // Set new auth header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+        
+        return true
+      }
+    } catch (error) {
+      console.error('Impersonation failed', error)
+      throw error
+    }
+    return false
+  }
+
+  async function stopImpersonation() {
+    try {
+      const response = await axios.post(`${API_URL}/auth/stop-impersonation`)
+      if (response.data.success) {
+        // Restore original user
+        token.value = response.data.data.token
+        user.value = response.data.data.user
+        
+        localStorage.setItem('token', token.value as string)
+        localStorage.setItem('user', JSON.stringify(user.value))
+        localStorage.removeItem('originalUser')
+        localStorage.removeItem('originalToken')
+        
+        // Set auth header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+        
+        return true
+      }
+    } catch (error) {
+      console.error('Stop impersonation failed', error)
+      throw error
+    }
+    return false
+  }
+
+  const isImpersonating = computed(() => {
+    return user.value?.impersonatedBy != null
+  })
+
+  const originalUser = computed(() => {
+    const stored = localStorage.getItem('originalUser')
+    return stored ? JSON.parse(stored) : null
+  })
+
+  return { 
+    token, 
+    user, 
+    isAuthenticated, 
+    isImpersonating,
+    originalUser,
+    login, 
+    register, 
+    logout,
+    impersonate,
+    stopImpersonation
+  }
 })

@@ -20,26 +20,30 @@ model Restaurant {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  users      User[]
-  categories Category[]
-  products   Product[]
-  tables     Table[]
-  orders     Order[]
-  allergens  Allergen[]
-  tableBills TableBill[]
+  users            User[]
+  categories       Category[]
+  products         Product[]
+  tables           Table[]
+  tableCategories  TableCategory[]
+  orders           Order[]
+  allergens        Allergen[]
+  tableBills       TableBill[]
 }
 
 // Auth
 model User {
-  id           String     @id @default(uuid())
-  email        String     @unique
-  passwordHash String
-  role         String     @default("RESTAURANT_ADMIN") // SUPER_ADMIN, RESTAURANT_ADMIN, STAFF, KITCHEN, SERVER
-  restaurantId String
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  serverTables Table[]    @relation("ServerTables")
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id                String     @id @default(uuid())
+  email             String     @unique
+  passwordHash      String
+  role              String     @default("RESTAURANT_ADMIN") // SUPER_ADMIN, RESTAURANT_ADMIN, STAFF, KITCHEN, SERVER
+  restaurantId      String
+  restaurant        Restaurant @relation(fields: [restaurantId], references: [id])
+  serverTables      Table[]    @relation("ServerTables")
+  impersonating     String?    // User ID being impersonated (null when not impersonating)
+  impersonatedBy    String?    // User ID who started impersonation (null when not being impersonated)
+  impersonationStart DateTime? // When impersonation started
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }
 
 // Menu
@@ -132,6 +136,20 @@ model ProductRelation {
 }
 
 // Tables & Sessions
+model TableCategory {
+  id           String     @id @default(uuid())
+  name         String     // e.g., "Indoors", "Terrace", "Bar", "VIP"
+  description  String?    // Optional description
+  sortOrder    Int        @default(0)
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tables       Table[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([restaurantId])
+}
+
 model Table {
   id           String         @id @default(uuid())
   name         String
@@ -142,6 +160,8 @@ model Table {
   lastResetAt  DateTime?      // Timestamp when table was last reset - orders before this are hidden
   serverId     String?        // User ID of the server assigned to this table (null = free table)
   server       User?          @relation("ServerTables", fields: [serverId], references: [id])
+  categoryId   String?        // Table category (e.g., "Indoors", "Terrace")
+  category     TableCategory? @relation(fields: [categoryId], references: [id])
   restaurantId String
   restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
   sessions     TableSession[]
@@ -150,6 +170,8 @@ model Table {
   billRequests BillRequest[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+
+  @@index([categoryId])
 }
 
 model TableSession {

@@ -5,11 +5,14 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Menu } from 'lucide-vue-next'
+import { Menu, X } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { toast } from 'vue-sonner'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 const breadcrumbs = computed(() => {
   const path = route.path
@@ -19,6 +22,15 @@ const breadcrumbs = computed(() => {
   if (path === '/tables') return [{ label: 'Tables' }]
   return []
 })
+
+async function stopImpersonation() {
+  try {
+    await authStore.stopImpersonation()
+    toast.success('Stopped impersonation')
+  } catch (error: any) {
+    toast.error('Failed to stop impersonation')
+  }
+}
 </script>
 
 <template>
@@ -40,6 +52,29 @@ const breadcrumbs = computed(() => {
 
     <!-- Main Content -->
     <div class="flex flex-1 flex-col">
+      <!-- Impersonation Banner -->
+      <div 
+        v-if="authStore.isImpersonating" 
+        class="flex items-center justify-between gap-4 px-4 py-3 bg-amber-500 text-white"
+      >
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span class="font-medium">Impersonating: {{ authStore.user?.email }}</span>
+          <span v-if="authStore.originalUser" class="text-xs opacity-90">(Original: {{ authStore.originalUser.email }})</span>
+        </div>
+        <Button 
+          size="sm" 
+          variant="secondary"
+          @click="stopImpersonation"
+          class="bg-white text-amber-700 hover:bg-gray-100"
+        >
+          <X class="mr-1 w-4 h-4" />
+          Stop Impersonation
+        </Button>
+      </div>
+
       <!-- Header -->
       <header class="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 md:px-6">
         <div class="flex items-center gap-2">

@@ -15,6 +15,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     const tables = await prisma.table.findMany({
       where: { restaurantId: req.user.restaurantId },
       include: {
+        category: true,
         sessions: {
           where: { active: true },
           orderBy: { createdAt: 'desc' },
@@ -40,9 +41,132 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Get all table categories for restaurant
+router.get('/categories', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const categories = await prisma.tableCategory.findMany({
+      where: { restaurantId: req.user.restaurantId },
+      include: {
+        _count: {
+          select: { tables: true }
+        }
+      },
+      orderBy: { sortOrder: 'asc' }
+    });
+
+    res.json({ success: true, data: categories });
+  } catch (error) {
+    console.error('Get table categories error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch table categories' });
+  }
+});
+
+// Create table category
+router.post('/categories', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { name, description, sortOrder } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ success: false, error: 'Category name is required' });
+  }
+
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const category = await prisma.tableCategory.create({
+      data: {
+        name,
+        description: description || null,
+        sortOrder: sortOrder || 0,
+        restaurantId: req.user.restaurantId
+      }
+    });
+
+    res.status(201).json({ success: true, data: category });
+  } catch (error) {
+    console.error('Create table category error:', error);
+    res.status(500).json({ success: false, error: 'Failed to create table category' });
+  }
+});
+
+// Update table category
+router.put('/categories/:categoryId', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { categoryId } = req.params;
+  const { name, description, sortOrder } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ success: false, error: 'Category name is required' });
+  }
+
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const category = await prisma.tableCategory.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!category || category.restaurantId !== req.user.restaurantId) {
+      return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+
+    const updated = await prisma.tableCategory.update({
+      where: { id: categoryId },
+      data: {
+        name,
+        description: description || null,
+        sortOrder: sortOrder !== undefined ? sortOrder : category.sortOrder
+      }
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Update table category error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update table category' });
+  }
+});
+
+// Delete table category
+router.delete('/categories/:categoryId', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { categoryId } = req.params;
+
+  try {
+    if (!req.user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const category = await prisma.tableCategory.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!category || category.restaurantId !== req.user.restaurantId) {
+      return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+
+    // Check if category has tables
+    const tablesCount = await prisma.table.count({
+      where: { categoryId }
+    });
+
+    if (tablesCount > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Cannot delete category with tables. Please move or delete tables first.' 
+      });
+    }
+
+    await prisma.tableCategory.delete({
+      where: { id: categoryId }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete table category error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete table category' });
+  }
+});
+
 // Create table
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
-  const { name, chairs, form } = req.body;
+  const { name, chairs, form, categoryId } = req.body;
 
   if (!name) {
     return res.status(400).json({ success: false, error: 'Table name is required' });
@@ -56,7 +180,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         name,
         chairs: chairs ? parseInt(chairs) : 4,
         form: form || null,
+        categoryId: categoryId || null,
         restaurantId: req.user.restaurantId
+      },
+      include: {
+        category: true
       }
     });
 
@@ -70,7 +198,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 // Update table
 router.put('/:tableId', authenticateToken, async (req: AuthRequest, res: Response) => {
   const tableId = Array.isArray(req.params.tableId) ? req.params.tableId[0] : req.params.tableId;
-  const { name, chairs, form } = req.body;
+  const { name, chairs, form, categoryId } = req.body;
 
   if (!name) {
     return res.status(400).json({ success: false, error: 'Table name is required' });
@@ -90,10 +218,14 @@ router.put('/:tableId', authenticateToken, async (req: AuthRequest, res: Respons
     const updateData: any = { name };
     if (chairs !== undefined) updateData.chairs = parseInt(chairs);
     if (form !== undefined) updateData.form = form || null;
+    if (categoryId !== undefined) updateData.categoryId = categoryId || null;
 
     const updated = await prisma.table.update({
       where: { id: tableId as string },
-      data: updateData
+      data: updateData,
+      include: {
+        category: true
+      }
     });
 
     res.json({ success: true, data: updated });
