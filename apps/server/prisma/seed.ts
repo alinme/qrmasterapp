@@ -275,13 +275,12 @@ async function main() {
 
   // 2. Create Super Admin user
   // Note: Super Admin still needs a restaurantId (schema requirement), so we use the demo restaurant as placeholder
-  const superAdminPassword = await bcrypt.hash('admin123', 10)
   const superAdmin = await prisma.user.create({
     data: {
-      email: 'superadmin@demo.com',
-      passwordHash: superAdminPassword,
+      email: 'super@gmail.com',
+      passwordHash: await bcrypt.hash('PParolamea00', 10),
       role: 'SUPER_ADMIN',
-      restaurantId: restaurant.id // Required by schema, but not used for access control
+      restaurantId: restaurant.id
     }
   })
 
