@@ -10,6 +10,7 @@
     "start": "npx serve -s dist"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
     "@vueuse/core": "^14.1.0",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
@@ -27,6 +28,7 @@
     "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^24.10.4",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
