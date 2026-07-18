@@ -1,0 +1,291 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f1a"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="accentGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+    <linearGradient id="phoneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="qrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="50%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="btnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#34d399"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="520" rx="24" fill="url(#bgGrad)"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.03">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#6366f1" stroke-width="1"/>
+    </pattern>
+    <rect width="1200" height="520" fill="url(#grid)"/>
+  </g>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="80" r="180" fill="url(#glowGrad)" filter="url(#softGlow)"/>
+  <circle cx="1100" cy="440" r="200" fill="url(#glowGrad)" filter="url(#softGlow)"/>
+
+  <!-- ===== LEFT SECTION: LOGO + TAGLINE ===== -->
+
+  <!-- QR Icon badge -->
+  <rect x="60" y="60" width="52" height="52" rx="12" fill="url(#accentGrad)" filter="url(#shadow)"/>
+  <g transform="translate(74, 74)">
+    <rect x="0" y="0" width="10" height="10" rx="1.5" fill="#fff" opacity="0.9"/>
+    <rect x="14" y="0" width="10" height="10" rx="1.5" fill="#fff" opacity="0.9"/>
+    <rect x="0" y="14" width="10" height="10" rx="1.5" fill="#fff" opacity="0.9"/>
+    <rect x="14" y="14" width="10" height="10" rx="1.5" fill="#fff" opacity="0.65"/>
+    <rect x="0" y="0" width="4" height="4" rx="0.5" fill="#fff" opacity="0.5"/>
+    <rect x="20" y="20" width="4" height="4" rx="0.5" fill="#fff" opacity="0.5"/>
+  </g>
+
+  <!-- Brand name -->
+  <text x="130" y="97" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="800" fill="#ffffff" letter-spacing="-0.5">QRMenu</text>
+
+  <!-- Tagline -->
+  <text x="60" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#94a3b8" letter-spacing="-0.2">Multi-tenant QR Menu +</text>
+  <text x="60" y="188" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#94a3b8" letter-spacing="-0.2">Live Table Ordering System</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(60, 220)">
+    <rect x="0" y="0" width="120" height="32" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#a5b4fc">⚡ Real-time</text>
+  </g>
+  <g transform="translate(192, 220)">
+    <rect x="0" y="0" width="140" height="32" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#a5b4fc">📱 Mobile-first PWA</text>
+  </g>
+  <g transform="translate(60, 262)">
+    <rect x="0" y="0" width="130" height="32" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#a5b4fc">🔐 Multi-tenant</text>
+  </g>
+  <g transform="translate(202, 262)">
+    <rect x="0" y="0" width="146" height="32" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="16" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#a5b4fc">🔔 Socket.IO live</text>
+  </g>
+
+  <!-- Tech stack badges -->
+  <g transform="translate(60, 330)">
+    <text x="0" y="12" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b" letter-spacing="1.5">TECH STACK</text>
+    <rect x="0" y="24" width="72" height="26" rx="6" fill="#1e293b"/>
+    <text x="10" y="41" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#e2e8f0">Vue 3</text>
+    <rect x="80" y="24" width="72" height="26" rx="6" fill="#1e293b"/>
+    <text x="94" y="41" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#e2e8f0">Node.js</text>
+    <rect x="160" y="24" width="72" height="26" rx="6" fill="#1e293b"/>
+    <text x="170" y="41" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#e2e8f0">Prisma</text>
+    <rect x="240" y="24" width="72" height="26" rx="6" fill="#1e293b"/>
+    <text x="250" y="41" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#e2e8f0">Socket.IO</text>
+  </g>
+
+  <!-- ===== CENTER-RIGHT: PHONE MOCKUP ===== -->
+
+  <!-- Phone body -->
+  <g filter="url(#shadow)" transform="translate(610, 80)">
+    <rect x="0" y="0" width="220" height="380" rx="28" fill="url(#phoneGrad)" stroke="#334155" stroke-width="1.5"/>
+    
+    <!-- Notch -->
+    <rect x="85" y="10" width="50" height="6" rx="3" fill="#1a1a2e"/>
+    
+    <!-- Screen -->
+    <rect x="8" y="24" width="204" height="336" rx="16" fill="#0f0f1a"/>
+    
+    <!-- Status bar -->
+    <text x="22" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#94a3b8" font-weight="600">9:41</text>
+    <g transform="translate(170, 42)">
+      <rect x="0" y="0" width="18" height="10" rx="2.5" fill="none" stroke="#94a3b8" stroke-width="1"/>
+      <rect x="16" y="3" width="2" height="4" rx="0.5" fill="#94a3b8"/>
+      <rect x="2" y="2" width="8" height="6" rx="1" fill="#10b981"/>
+    </g>
+    
+    <!-- Restaurant header -->
+    <rect x="16" y="58" width="184" height="28" rx="6" fill="#6366f1"/>
+    <text x="28" y="77" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#fff" font-weight="600">🍕 Bella Italia</text>
+    
+    <!-- Table label -->
+    <text x="22" y="108" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Table 5 · Server: Alex</text>
+    
+    <!-- Menu items -->
+    <!-- Item 1 -->
+    <rect x="16" y="118" width="184" height="52" rx="8" fill="#1a1a2e" stroke="#2d2d4a" stroke-width="0.5"/>
+    <text x="26" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#e2e8f0" font-weight="600">Margherita Pizza</text>
+    <text x="26" y="156" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Tomato, mozzarella, basil</text>
+    <text x="170" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#10b981" font-weight="700">$12.99</text>
+    
+    <!-- Item 2 -->
+    <rect x="16" y="176" width="184" height="52" rx="8" fill="#1a1a2e" stroke="#2d2d4a" stroke-width="0.5"/>
+    <text x="26" y="198" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#e2e8f0" font-weight="600">Caesar Salad</text>
+    <text x="26" y="214" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Lettuce, parmesan, croutons</text>
+    <text x="170" y="198" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#10b981" font-weight="700">$9.99</text>
+    
+    <!-- Item 3 -->
+    <rect x="16" y="234" width="184" height="52" rx="8" fill="#1a1a2e" stroke="#2d2d4a" stroke-width="0.5" opacity="0.7"/>
+    <text x="26" y="256" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#e2e8f0" font-weight="600">Spaghetti Carbonara</text>
+    <text x="26" y="272" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Bacon, egg, parmesan</text>
+    <text x="170" y="256" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#10b981" font-weight="700">$15.99</text>
+    
+    <!-- Order button -->
+    <rect x="40" y="304" width="140" height="36" rx="18" fill="url(#btnGrad)" filter="url(#glow)"/>
+    <text x="74" y="327" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#fff" font-weight="700">Place Order</text>
+    
+    <!-- Bottom indicator -->
+    <rect x="80" y="360" width="60" height="4" rx="2" fill="#334155"/>
+  </g>
+
+  <!-- ===== CONNECTION ARROWS ===== -->
+  
+  <!-- Arrow from phone to right (admin) -->
+  <g transform="translate(860, 200)">
+    <line x1="0" y1="0" x2="60" y2="-40" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <polygon points="60,-40 52,-30 58,-38" fill="#6366f1"/>
+  </g>
+
+  <!-- ===== RIGHT SECTION: ADMIN PANEL SNIPPET ===== -->
+  <g transform="translate(900, 60)" filter="url(#shadow)">
+    <rect x="0" y="0" width="240" height="180" rx="14" fill="#0f0f1a" stroke="#334155" stroke-width="1"/>
+    
+    <!-- Admin header -->
+    <rect x="0" y="0" width="240" height="36" rx="14" fill="#1a1a2e"/>
+    <circle cx="18" cy="18" r="4" fill="#ef4444"/>
+    <circle cx="32" cy="18" r="4" fill="#f59e0b"/>
+    <circle cx="46" cy="18" r="4" fill="#10b981"/>
+    <text x="62" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Admin Dashboard</text>
+    
+    <!-- Content -->
+    <text x="16" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">Live Orders</text>
+    
+    <!-- Order cards -->
+    <rect x="16" y="72" width="208" height="34" rx="6" fill="#1a1a2e" stroke="#2d2d4a" stroke-width="0.5"/>
+    <circle cx="28" cy="89" r="4" fill="#f59e0b"/>
+    <text x="38" y="93" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#cbd5e1">Table 3 · 2 items · $24.98</text>
+    
+    <rect x="16" y="112" width="208" height="34" rx="6" fill="#1a1a2e" stroke="#2d2d4a" stroke-width="0.5"/>
+    <circle cx="28" cy="129" r="4" fill="#10b981"/>
+    <text x="38" y="133" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#cbd5e1">Table 5 · 3 items · $38.97</text>
+    
+    <rect x="16" y="136" width="208" height="34" rx="6" fill="#1a1a2e" stroke="#2d2d4a" stroke-width="0.5" opacity="0.7"/>
+    <circle cx="28" cy="153" r="4" fill="#ef4444"/>
+    <text x="38" y="157" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#cbd5e1">Table 2 · Bill request</text>
+  </g>
+
+  <!-- QR Code floating element -->
+  <g transform="translate(900, 270)" filter="url(#shadow)">
+    <rect x="0" y="0" width="240" height="180" rx="14" fill="#0f0f1a" stroke="#334155" stroke-width="1"/>
+    
+    <text x="16" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">🔲 QR Code</text>
+    <text x="16" y="46" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Scan to view menu &amp; order</text>
+    
+    <!-- QR Code visual -->
+    <g transform="translate(95, 62)">
+      <rect x="0" y="0" width="56" height="56" rx="4" fill="#fff"/>
+      <!-- QR pattern -->
+      <g fill="#0f0f1a">
+        <rect x="4" y="4" width="16" height="16" rx="2"/>
+        <rect x="36" y="4" width="16" height="16" rx="2"/>
+        <rect x="4" y="36" width="16" height="16" rx="2"/>
+        <rect x="4" y="4" width="6" height="6" rx="1" fill="#fff"/>
+        <rect x="44" y="4" width="8" height="6" rx="1" fill="#fff"/>
+        <rect x="4" y="44" width="6" height="8" rx="1" fill="#fff"/>
+        <rect x="24" y="24" width="8" height="8" rx="1"/>
+        <rect x="24" y="4" width="4" height="4"/>
+        <rect x="36" y="24" width="4" height="12"/>
+        <rect x="44" y="24" width="8" height="4"/>
+        <rect x="24" y="36" width="12" height="4"/>
+        <rect x="44" y="36" width="8" height="8" rx="1"/>
+        <rect x="24" y="44" width="4" height="8"/>
+        <rect x="36" y="44" width="4" height="4"/>
+        <rect x="44" y="48" width="4" height="4"/>
+      </g>
+    </g>
+    
+    <text x="16" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Per-table QR codes</text>
+    <text x="16" y="156" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Reusable after reset</text>
+    <rect x="170" y="134" width="54" height="26" rx="6" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+    <text x="178" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#a5b4fc">Live</text>
+  </g>
+
+  <!-- Bottom stats bar -->
+  <g transform="translate(60, 420)">
+    <rect x="0" y="0" width="1080" height="1" fill="#334155" opacity="0.5"/>
+    
+    <!-- Stat 1 -->
+    <g transform="translate(0, 18)">
+      <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#e2e8f0" font-weight="800">3</text>
+      <text x="0" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Applications</text>
+    </g>
+    
+    <line x1="120" y1="18" x2="120" y2="50" stroke="#334155" stroke-width="0.5"/>
+    
+    <!-- Stat 2 -->
+    <g transform="translate(150, 18)">
+      <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#e2e8f0" font-weight="800">Vue 3</text>
+      <text x="0" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Frontend</text>
+    </g>
+    
+    <line x1="270" y1="18" x2="270" y2="50" stroke="#334155" stroke-width="0.5"/>
+    
+    <!-- Stat 3 -->
+    <g transform="translate(300, 18)">
+      <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#e2e8f0" font-weight="800">Express</text>
+      <text x="0" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Backend</text>
+    </g>
+    
+    <line x1="430" y1="18" x2="430" y2="50" stroke="#334155" stroke-width="0.5"/>
+    
+    <!-- Stat 4 -->
+    <g transform="translate(460, 18)">
+      <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#e2e8f0" font-weight="800">Socket.IO</text>
+      <text x="0" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Real-time</text>
+    </g>
+    
+    <line x1="590" y1="18" x2="590" y2="50" stroke="#334155" stroke-width="0.5"/>
+    
+    <!-- Stat 5 -->
+    <g transform="translate(620, 18)">
+      <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#e2e8f0" font-weight="800">Prisma</text>
+      <text x="0" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">PostgreSQL / SQLite</text>
+    </g>
+    
+    <line x1="780" y1="18" x2="780" y2="50" stroke="#334155" stroke-width="0.5"/>
+    
+    <!-- Stat 6 -->
+    <g transform="translate(810, 18)">
+      <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#e2e8f0" font-weight="800">PWA</text>
+      <text x="0" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Customer App</text>
+    </g>
+  </g>
+</svg>
